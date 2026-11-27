@@ -35,6 +35,22 @@ const body=c=>{const o={};FIELDS.forEach(k=>{if(c[k]!==undefined)o[k]=c[k]});ret
    Esses dados não são senha: podem ficar no repositório público. A segurança vem das regras do Firestore. */
 const FIREBASE_CONFIG={apiKey:"AIzaSyBjISGIXktzMFy3t_hinDF8iFZD8bGOxaY",authDomain:"requisita.firebaseapp.com",projectId:"requisita",storageBucket:"requisita.firebasestorage.app",messagingSenderId:"696965923031",appId:"1:696965923031:web:d1f0da3979e237e66bb092"};
 const MASTER='cicero.silva@maida.health';
+/* Login com Google direto neste site (funciona no Safari do iPhone, que bloqueia a janela do firebaseapp.com).
+   Cole aqui o "ID do cliente da Web" (Firebase > Authentication > Método de login > Google > Configuração do SDK da Web).
+   Não é senha. Vazio = usa a janela do Firebase (pode falhar no iPhone). */
+const GOOGLE_CLIENT_ID='';
+function gsiStart(){
+ if(!GOOGLE_CLIENT_ID||!fb)return;
+ const go=()=>{try{
+  google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,ux_mode:'popup',use_fedcm_for_button:true,callback:async r=>{
+   gmsg('Entrando…');try{await fb.AU.signInWithCredential(fb.auth,fb.AU.GoogleAuthProvider.credential(r.credential));gmsg('')}catch(err){gmsg(aerr(err))}}});
+  const box=$('#gGsi');box.innerHTML='';
+  google.accounts.id.renderButton(box,{type:'standard',theme:'outline',size:'large',text:'continue_with',shape:'rectangular',logo_alignment:'center',locale:'pt-BR',width:Math.min(380,box.parentElement.clientWidth||320)});
+  box.hidden=false;$('#gGoogle').hidden=true;
+ }catch(_){}};
+ if(window.google&&google.accounts&&google.accounts.id)return go();
+ const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;sc.onload=go;document.head.appendChild(sc);
+}
 let gMode='entrar';
 function setGMode(){const c=gMode==='criar';document.querySelectorAll('[data-gmode]').forEach(x=>{const on=x.dataset.gmode===gMode;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)});$('#gNomeWrap').hidden=!c;$('#gReset').hidden=c;$('#gTitle').textContent=c?'Criar conta':'Entrar';$('#gSubTxt').textContent=c?'Depois do cadastro, o master precisa aprovar seu acesso.':'Use sua conta do time para acessar o backlog.';$('#gSubmit').textContent=c?'Criar conta':'Entrar';$('#gGoogleTxt').textContent=c?'Cadastrar com Google':'Continuar com Google';$('#gPass').autocomplete=c?'new-password':'current-password';gmsg('')}
 async function gmode_submit(){const em=$('#gEmail').value.trim(),pw=$('#gPass').value;if(!em||!pw){gmsg('Preencha e-mail e senha.');return}
@@ -53,7 +69,7 @@ async function fbStart(){
   const [A,AU,FS]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
   const app=A.initializeApp(FIREBASE_CONFIG);
   fb={auth:AU.getAuth(app),fs:FS.getFirestore(app),AU,FS};
-  gmsg('');AU.onAuthStateChanged(fb.auth,onUser);
+  gmsg('');AU.onAuthStateChanged(fb.auth,onUser);gsiStart();
  }catch(e){gmsg('Não foi possível carregar o Firebase. Confira a internet e a configuração.')}
 }
 function stopSubs(){[unsubCards,unsubMe,unsubUsers,unsubNot,unsubCom,unsubAnx].forEach(f=>f&&f());unsubCards=unsubMe=unsubUsers=unsubNot=unsubCom=unsubAnx=null;$('#bellW').hidden=true}
@@ -509,7 +525,7 @@ document.addEventListener('click',async e=>{
  else if(b.id==='copiarTxt')copy(md(d,true));
  else if(b.dataset.copy)copy(md(cards.find(c=>c.id==b.dataset.copy)));
  else if(b.dataset.rm){const old=clone(cards.find(c=>c.id==b.dataset.rm));if(!old||!canDel(old)){toast('Só quem criou o card ou o master pode excluir.');return}try{await remove(old.id);toast(`${old.key} excluído`,()=>persist(old).catch(()=>toast('Não foi possível desfazer')))}catch(err){toast(err&&err.code==='permission-denied'?'Só quem criou o card ou o master pode excluir.':'Não foi possível excluir agora. Tente de novo.')}}
- else if(b.id==='gGoogle'){gmsg('Abrindo o Google…');try{await fb.AU.signInWithPopup(fb.auth,new fb.AU.GoogleAuthProvider());gmsg('')}catch(err){gmsg(aerr(err))}}
+ else if(b.id==='gGoogle'){gmsg('Abrindo o Google…');try{await fb.AU.signInWithPopup(fb.auth,new fb.AU.GoogleAuthProvider());gmsg('')}catch(err){gmsg(/iPhone|iPad|iPod/.test(navigator.userAgent)?'O Safari do iPhone bloqueou o login com Google. Por enquanto, entre com e-mail e senha.':aerr(err))}}
  else if(b.dataset.gmode){gMode=b.dataset.gmode;setGMode()}
  else if(b.id==='gSubmit'){gmode_submit()}
  else if(b.id==='gReset'){const em=$('#gEmail').value.trim();if(!em){gmsg('Escreva seu e-mail e clique de novo em Esqueci a senha.');return}try{await fb.AU.sendPasswordResetEmail(fb.auth,em);gmsg('Enviamos um link para criar uma nova senha.')}catch(err){gmsg(aerr(err))}}
