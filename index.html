@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Requisita.ai</title>
+<style>
+/* Estilo de issue do Jira: texto pequeno, campos que só aparecem ao passar o mouse, painel de detalhes à direita, backlog em lista.
+   Cores: preto, prata e branco. */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#000);--sub:light-dark(#f7f8f9,#121212);--hov:light-dark(#f1f2f4,#1f1f1f);--ink:light-dark(#1d1d1f,#ececec);--mut:light-dark(#6b6d70,#9a9ca0);--line:light-dark(#dcdfe4,#2e2e2e);--silver:#a7a9ac;--solid:light-dark(#000,#fff);--onsolid:light-dark(#fff,#000)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:clip}
+h1,h2,h3{margin:0}
+.nav{background:#000;color:#fff;height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:2px solid var(--silver)}
+.logo{width:28px;height:28px;border-radius:4px;background:linear-gradient(135deg,#e6e7e8,#8d8f92);color:#000;font-weight:700;font-size:12px;display:grid;place-items:center}
+.nav b{font-size:15px;font-weight:600}
+.nav span{color:#9a9ca0}
+.nav .sp{flex:1}
+.nav button{background:var(--silver);color:#000;border:0;border-radius:3px;font:500 14px inherit;font-family:inherit;padding:0 12px;height:32px;cursor:pointer}
+.nav button:hover{background:#c8c9cb}
+.wrap{max-width:1280px;margin:auto;padding:0 clamp(12px,3vw,32px)}
+.crumb{color:var(--mut);padding:20px 0 6px;font-size:14px}
+.crumb strong{color:var(--ink);font-weight:500}
+.issue{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;align-items:start}
+.inl{width:100%;font:inherit;color:var(--ink);background:transparent;border:2px solid transparent;border-radius:3px;padding:6px 8px;margin-left:-10px;min-height:36px}
+.inl:hover{background:var(--hov)}
+.inl:focus{outline:0;border-color:var(--solid);background:var(--bg)}
+textarea.inl{resize:vertical;min-height:64px;width:calc(100% + 10px)}
+#f-titulo{font-size:24px;font-weight:500;line-height:1.25;margin-bottom:4px}
+.bar{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 18px}
+.btn{height:32px;border:0;border-radius:3px;background:var(--hov);color:var(--ink);font:500 14px inherit;font-family:inherit;padding:0 12px;cursor:pointer}
+.btn:hover{filter:brightness(.95)}
+.btn.pri{background:var(--solid);color:var(--onsolid)}
+.btn:focus-visible,.nav button:focus-visible,.lnk:focus-visible{outline:2px solid var(--silver);outline-offset:1px}
+.sec{margin-bottom:22px}
+.ai{border:1px solid var(--line);border-left:3px solid var(--silver);border-radius:3px;padding:10px 12px;margin:0 0 22px;background:var(--sub)}
+.ai[hidden]{display:none}
+.ai label{display:block;font-weight:600;margin-bottom:4px}
+.ai textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:3px;padding:6px 8px;resize:vertical;min-height:56px}
+.ai textarea:focus{outline:0;border-color:var(--solid)}
+.aibar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+#aiMsg{color:var(--mut);font-size:13px}
+.sec h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.sec h3 small{font-weight:400;color:var(--mut)}
+.story{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;column-gap:8px}
+.story label{color:var(--mut);font-weight:500}
+.lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 28px}
+#extra>div:has(.graf){grid-column:1/-1}
+.graf{flex:0 0 170px;font:inherit;font-size:13px;color:var(--ink);background:var(--hov);border:2px solid transparent;border-radius:3px;height:32px;padding:0 6px;cursor:pointer;margin-left:6px}
+.graf:focus{outline:0;border-color:var(--solid)}
+@media(max-width:600px){.item:has(.graf){flex-wrap:wrap}.graf{flex:1 1 100%;margin:0 0 6px}}
+.item{display:flex;align-items:center}
+.item .inl{margin-left:-10px}
+.x{flex:0 0 28px;height:28px;border:0;background:none;color:var(--mut);font-size:18px;cursor:pointer;border-radius:3px}
+.x:hover{background:var(--hov);color:var(--ink)}
+.lnk{background:none;border:0;color:var(--mut);font:500 14px inherit;font-family:inherit;padding:4px 0;cursor:pointer}
+.lnk:hover{color:var(--ink);text-decoration:underline}
+.side{border:1px solid var(--line);border-radius:3px;position:sticky;top:16px}
+.side h2{font-size:14px;font-weight:600;padding:12px 14px;border-bottom:1px solid var(--line)}
+.det{padding:6px 14px 12px}
+.f{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;gap:8px;padding:4px 0}
+.f>span{color:var(--mut);font-weight:500}
+.f select{width:100%;font:inherit;color:var(--ink);background:transparent;border:2px solid transparent;border-radius:3px;padding:4px 6px;min-height:34px;cursor:pointer}
+.f select:hover{background:var(--hov)}.f select:focus{outline:0;border-color:var(--solid)}
+.fixed{display:flex;align-items:center;gap:8px;padding:6px 8px}
+.ico{width:16px;height:16px;flex:none;border-radius:3px;display:inline-grid;place-items:center}
+.ico.hist{background:var(--solid)}.ico.bi{background:var(--silver)}.ico.rel{border:1.5px solid var(--solid)}
+.ico svg{width:10px;height:10px}
+.tags{display:flex;flex-wrap:wrap;gap:4px;padding:4px 0}
+.tag{display:inline-flex;align-items:center;gap:2px;background:var(--hov);border-radius:3px;padding:1px 2px 1px 6px;font-size:13px;font-weight:500;white-space:nowrap}
+.tag button{border:0;background:none;color:var(--mut);cursor:pointer;width:20px;height:20px;font-size:14px;border-radius:2px}
+.tag button:hover{color:var(--ink)}
+.f input.inl{margin-left:0;font-size:14px;min-height:32px;padding:4px 6px}
+.f>label{color:var(--mut);font-weight:500;font-size:14px;margin:0}
+.lkwarn{color:var(--mut);font-size:12px;margin:0;min-height:0}
+.lk{margin-top:6px}.lk label{display:block;font-size:12px;color:var(--mut);font-weight:500}
+.lkr{display:flex;align-items:center;gap:6px}.lkr input{flex:1}
+.lkr a,.tag.tl{color:var(--ink);font-weight:600;font-size:13px}.tag.tl{padding-right:6px;text-decoration:none}.tag.tl:hover{text-decoration:underline}
+.lk small{color:var(--mut);font-size:12px}
+.f.top{align-items:start}.f.top>span{padding-top:6px}
+.meta{color:var(--mut);font-size:12px;padding:10px 14px;border-top:1px solid var(--line)}
+.backlog{margin-top:28px;padding:20px 0 40px;border-top:1px solid var(--line)}
+.bh{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bh h2{font-size:20px;font-weight:500}
+.bh input{width:240px;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:3px;padding:4px 8px;height:34px}
+.bh input:focus{outline:0;border-color:var(--solid)}
+.list{border:1px solid var(--line);border-radius:3px}
+.li{display:grid;grid-template-columns:16px 72px minmax(0,1fr) auto auto 60px auto;gap:10px;align-items:center;padding:6px 12px;border-top:1px solid var(--line);min-height:40px}
+.li:first-child{border-top:0}
+.li:hover{background:var(--sub)}
+.li.cur{background:var(--hov)}
+.li .k{color:var(--mut);font-weight:500;white-space:nowrap}
+.li .t{cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .t:hover{text-decoration:underline}
+.li .p{color:var(--mut);font-size:13px}
+.li .a{display:flex;gap:2px}
+.li .a button{border:0;background:none;color:var(--mut);font:500 13px inherit;font-family:inherit;padding:4px 6px;border-radius:3px;cursor:pointer}
+.li .a button:hover{background:var(--hov);color:var(--ink)}
+.empty{color:var(--mut);padding:18px 12px;margin:0}
+details{margin-top:16px;color:var(--mut)}summary{cursor:pointer;font-weight:500;min-height:32px;display:flex;align-items:center}
+details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);background:var(--sub);border:1px solid var(--line);border-radius:3px;padding:8px;margin:8px 0}
+.toast{position:fixed;left:20px;bottom:20px;background:#000;color:#fff;border-left:4px solid var(--silver);padding:10px 14px;border-radius:3px;display:none;gap:14px;align-items:center;z-index:9;box-shadow:0 8px 16px rgba(0,0,0,.25)}
+.toast.on{display:flex}.toast button{background:none;border:0;color:var(--silver);font:600 14px inherit;font-family:inherit;cursor:pointer;text-decoration:underline}
+.tipos{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}
+.tipos button{display:inline-flex;align-items:center;gap:6px;border:0;border-left:1px solid var(--line);background:var(--bg);color:var(--mut);font:500 14px inherit;font-family:inherit;padding:0 12px;height:32px;cursor:pointer}
+.tipos button:first-child{border-left:0}
+.tipos button:hover{background:var(--hov)}
+.tipos button.on{background:var(--solid);color:var(--onsolid)}
+.tipos button.on .ico.rel{border-color:var(--onsolid)}.tipos button.on .ico.rel path{stroke:var(--onsolid)}.tipos button.on .ico.hist{background:var(--onsolid)}.tipos button.on .ico.hist path{fill:var(--solid)}
+.ftabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.ftabs button{border:0;background:none;color:var(--mut);font:500 14px inherit;font-family:inherit;height:32px;padding:0 10px;border-radius:3px;cursor:pointer}
+.ftabs button:hover{background:var(--hov)}
+.ftabs button.on{background:var(--solid);color:var(--onsolid)}
+.ftabs small{opacity:.7;margin-left:4px}
+.li .who{color:var(--mut);font-size:12px;white-space:nowrap}
+@media(max-width:900px){.issue{grid-template-columns:minmax(0,1fr)}.side{position:static}}
+@media(max-width:600px){.nav span{display:none}.li{grid-template-columns:16px minmax(0,1fr) auto;row-gap:2px}.li .k{grid-column:2}.li .t{grid-column:1/-1;white-space:normal}.li .tg,.li .p,.li .who{display:none}.li .a{grid-column:3;grid-row:1}.bh input{width:100%}}
+</style></head><body>
+<header class="nav">
+  <div class="logo" aria-hidden="true">R</div>
+  <b>Requisita.ai</b><span>Eco-Maida</span>
+  <div class="sp"></div>
+  <button type="button" id="novo">Criar card</button>
+</header>
+
+<main class="wrap">
+  <div class="crumb">Requisita.ai / Eco-Maida / <strong id="crumbKey">Novo card</strong></div>
+  <div class="issue">
+    <form id="form" autocomplete="off" onsubmit="return false">
+      <div class="tipos" role="tablist" aria-label="Tipo do card"><button type="button" data-type="bi"></button><button type="button" data-type="rel"></button></div>
+      <input id="f-titulo" class="inl" data-f="titulo" placeholder="Resumo do card" aria-label="Resumo">
+      <div class="bar">
+        <button type="button" class="btn pri" id="salvar">Salvar</button>
+        <button type="button" class="btn" id="copiarMd">Copiar para o Jira</button>
+        <button type="button" class="btn" id="copiarTxt">Copiar texto simples</button>
+        <button type="button" class="btn" id="sugerir">Sugerir critérios</button>
+      </div>
+      <div class="ai" id="ai" hidden>
+        <label for="aiIn">Escrever com IA</label>
+        <textarea id="aiIn" rows="2" placeholder="Conte com suas palavras o que o cliente pediu. Ex.: painel de vendas por loja, filtro por período, comparar com o mês anterior em colunas"></textarea>
+        <div class="aibar">
+          <button type="button" class="btn pri" id="aiFill">Preencher card</button>
+          <button type="button" class="btn" id="aiReview">Revisar texto do card</button>
+          <button type="button" class="btn" id="aiStop" hidden>Parar</button>
+          <span id="aiMsg" role="status"></span>
+        </div>
+      </div>
+      <div class="sec">
+        <h3>História</h3>
+        <div class="story">
+          <label for="s1">Como</label><input id="s1" class="inl" data-f="como" placeholder="quem usa">
+          <label for="s2">Quero</label><input id="s2" class="inl" data-f="quero" placeholder="o que precisa">
+          <label for="s3">Para</label><input id="s3" class="inl" data-f="para" placeholder="qual ganho">
+        </div>
+      </div>
+      <div class="sec"><h3>Descrição</h3><textarea class="inl" data-f="descricao" aria-label="Descrição" placeholder="Adicione uma descrição…"></textarea></div>
+      <div class="sec lists" id="extra"></div>
+      <div class="sec"><h3>Critérios de aceite <small>um por linha</small></h3><textarea id="f-crit" class="inl" data-f="criterios" rows="4" aria-label="Critérios de aceite" placeholder="Adicione critérios…"></textarea></div>
+    </form>
+
+    <aside class="side">
+      <h2>Detalhes</h2>
+      <div class="det">
+        <div class="f"><span>Tipo</span><div class="fixed" id="tipoFix"></div></div>
+        <div class="f"><span>Prioridade</span><select data-f="prioridade" aria-label="Prioridade"><option>Baixa</option><option>Média</option><option>Alta</option></select></div>
+        <div class="f"><span>Sistema</span><div class="fixed">Eco-Maida</div></div>
+        <div class="f"><label for="lk-Cervello">Link do Cervello</label><div class="lkr"><input class="inl" type="url" id="lk-Cervello" data-link="Cervello" placeholder="https://…"></div></div>
+        <div class="f"><label for="lk-Jira">Link do Jira</label><div class="lkr"><input class="inl" type="url" id="lk-Jira" data-link="Jira" placeholder="https://…"></div></div>
+        <p class="lkwarn" id="lkwarn"></p>
+      </div>
+      <div class="meta" id="metaLine">Card novo, ainda não salvo</div>
+      <div class="meta" id="syncLine">Conectando ao backlog do time…</div>
+    </aside>
+  </div>
+
+  <section class="backlog">
+    <div class="bh"><h2>Backlog do time</h2><input id="busca" type="search" placeholder="Buscar no backlog" aria-label="Buscar no backlog"></div>
+    <div class="ftabs" id="ftabs" role="tablist" aria-label="Filtrar backlog por tipo"></div>
+    <div class="list" id="cards"></div>
+    <details>
+      <summary>Backup e importação</summary>
+      <p>Gere uma cópia de todos os cards em texto, ou importe uma cópia gerada antes.</p>
+      <textarea id="backup" rows="3" aria-label="Backup"></textarea>
+      <div class="bar"><button type="button" class="btn" id="gerarBk">Gerar backup e copiar</button><button type="button" class="btn" id="importBk">Importar backup</button></div>
+    </details>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"><span id="toastMsg"></span><button type="button" id="toastUndo">Desfazer</button></div>
+
+<script>
+{
+const SISTEMA='Eco-Maida',LKEY='ecomaida.cards.v1',DKEY='ecomaida.draft.v1',IKEY='ecomaida.integ.v1';
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=s=>document.querySelector(s);
+const TYPES={bi:'BI',rel:'Relatório'},PLURAL={bi:'BI',rel:'Relatórios'};
+const SVG={hist:'<svg viewBox="0 0 10 10"><path d="M2.5 1.5h5v7L5 6.8 2.5 8.5z" fill="var(--onsolid)"/></svg>',bi:'<svg viewBox="0 0 10 10"><path d="M1.5 8.5V5.5M5 8.5v-7M8.5 8.5V3.5" stroke="#000" stroke-width="1.6"/></svg>',rel:'<svg viewBox="0 0 10 10"><path d="M2 2.5h6M2 5h6M2 7.5h4" stroke="var(--solid)" stroke-width="1.3"/></svg>'};
+const ico=t=>`<span class="ico ${t}" title="${TYPES[t]}">${SVG[t]}</span>`;
+const LISTS={filtros:{t:'Filtros',ph:'Ex.: Período'},params:{t:'Parâmetros exibidos',ph:'Ex.: Total do mês'},comps:{t:'Comparativos',ph:'Ex.: Mês atual x anterior'},colunas:{t:'Colunas',ph:'Ex.: Data'}};
+const GRAF=['Cartão (número)','Barras','Colunas','Linhas','Área','Pizza','Rosca','Barras + linha','Tabela','Mapa de calor','Velocímetro','Funil','Mapa geográfico'];
+const pnome=x=>typeof x==='string'?x:String(x&&x.nome||'');
+const LINKNAMES=['Cervello','Jira'];
+const BY={bi:['filtros','params','comps'],rel:['filtros','colunas']};
+const FIELDS=['key','tipo','titulo','prioridade','como','quero','para','descricao','criterios','filtros','params','comps','colunas','integracoes','links','integDetalhe','autor','criadoEm','editadoPor','editadoEm'];
+const blank=t=>({id:null,key:'',tipo:TYPES[t]?t:'bi',titulo:'',prioridade:'Média',como:'',quero:'',para:'',descricao:'',criterios:'',filtros:[],params:[],comps:[],colunas:[],integracoes:[],links:{},integDetalhe:''});
+const norm=(c,id)=>{const o=Object.assign(blank(c.tipo),{});FIELDS.forEach(k=>{if(c[k]!==undefined)o[k]=c[k]});if(!TYPES[o.tipo])o.tipo='bi';['filtros','params','comps','colunas','integracoes'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[];o[k]=k==='params'?o[k].map(x=>({nome:pnome(x),grafico:String(x&&x.grafico||'')})):o[k].map(x=>String(x??''))});['titulo','como','quero','para','descricao','criterios','integDetalhe','prioridade','key'].forEach(k=>o[k]=String(o[k]??''));{const l={};if(o.links&&typeof o.links==='object')Object.keys(o.links).forEach(k=>{l[String(k)]=String(o.links[k]??'')});o.links=l}o.id=id;return o};
+const okUrl=u=>/^https:\/\/\S+$/i.test(String(u||'').trim());
+const linkOf=(c,t)=>String((c.links||{})[t]||'').trim();
+let cards=[],integ=['Cervello','Jira'],d=norm(store.get(DKEY,{}),store.get(DKEY,{}).id||null),undo=null,tt,ft='',db=null,user=null,me=null,names={};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const vals=(k,c=d)=>(c[k]||[]).map(s=>pnome(s).trim()).filter(Boolean);
+const paramsOk=(c=d)=>(c.params||[]).filter(p=>pnome(p).trim()).map(p=>({nome:pnome(p).trim(),grafico:p.grafico||''}));
+const body=c=>{const o={};FIELDS.forEach(k=>{if(c[k]!==undefined)o[k]=c[k]});return o};
+
+/* ---------- dados: backlog do time (db) ou este navegador ---------- */
+const local={on:false};
+function useLocal(msg){local.on=true;cards=store.get(LKEY,[]).map(c=>norm(c,String(c.id)));integ=store.get(IKEY,integ);$('#syncLine').textContent=msg;renderAll()}
+async function persist(c){
+ if(local.on){const i=cards.findIndex(x=>x.id===c.id);i>=0?cards[i]=clone(c):cards.unshift(clone(c));store.set(LKEY,cards);renderCards();return}
+ await db.collection('cards').doc(c.id).set(body(c));
+}
+async function remove(id){
+ if(local.on){cards=cards.filter(x=>x.id!==id);store.set(LKEY,cards);renderCards();return}
+ await db.collection('cards').doc(id).delete();
+}
+async function saveInteg(){
+ if(local.on){store.set(IKEY,integ);return}
+ try{await db.doc('config/integracoes').set({lista:integ})}catch(e){}
+}
+async function connect(){
+ const timer=setTimeout(()=>{if(!db)useLocal('Backlog do time indisponível agora. Os cards estão sendo salvos só neste navegador.')},10000);
+ try{db=await claude.use('db');user=await claude.use('user')}catch(e){db=null}
+ if(!db){clearTimeout(timer);if(!local.on)useLocal('Backlog do time indisponível nesta visualização. Os cards ficam só neste navegador.');return}
+ try{me=user?await user.id():null}catch(e){me=null}
+ let first=true;
+ const slow=setTimeout(()=>{if(first)$('#syncLine').textContent='O backlog do time está demorando para responder…'},10000);
+ clearTimeout(timer);
+ db.collection('cards').onSnapshot(snap=>{
+  cards=snap.docs.filter(s=>s.exists).map(s=>norm(s.data()||{},s.id)).sort((a,b)=>num(b.key)-num(a.key));
+  if(!snap.metadata.fromCache){first=false;clearTimeout(slow);$('#syncLine').textContent='Backlog do time: todo mundo com acesso ao link vê os mesmos cards.'}
+  renderCards();resolveNames();
+ },e=>{clearTimeout(slow);$('#syncLine').textContent='Não foi possível ler o backlog do time. Recarregue a página mais tarde.'});
+}
+const num=k=>parseInt(String(k).replace(/\D/g,''))||0;
+async function resolveNames(){
+ if(!user)return;const ids=[...new Set(cards.flatMap(c=>[c.autor,c.editadoPor]).filter(Boolean))];if(!ids.length)return;
+ try{const ps=await user.profiles(ids);ids.forEach(i=>names[i]=(ps&&ps[i]&&ps[i].name)||'Alguém do time');renderCards();meta()}catch(e){}
+}
+const who=id=>id?(id===me?'você':(names[id]||'Alguém do time')):'';
+
+/* ---------- interface ---------- */
+function renderTipos(){
+ document.querySelectorAll('.tipos button').forEach(b=>{b.innerHTML=ico(b.dataset.type)+TYPES[b.dataset.type];b.classList.toggle('on',b.dataset.type===d.tipo);b.setAttribute('aria-selected',b.dataset.type===d.tipo)});
+ $('#tipoFix').innerHTML=ico(d.tipo)+TYPES[d.tipo];
+}
+function renderExtra(){
+ $('#extra').innerHTML=BY[d.tipo].map(k=>`<div><h3>${LISTS[k].t}</h3>${d[k].map((v,i)=>`<div class="item"><input class="inl" data-l="${k}" data-i="${i}" value="${esc(pnome(v))}" placeholder="${esc(LISTS[k].ph)}" aria-label="${LISTS[k].t} ${i+1}">${k==='params'?`<select class="graf" data-g="${i}" aria-label="Tipo de gráfico de ${esc(pnome(v)||'parâmetro '+(i+1))}"><option value="">Tipo de gráfico</option>${GRAF.map(g=>`<option${v.grafico===g?' selected':''}>${g}</option>`).join('')}</select>`:''}<button type="button" class="x" data-del="${k}" data-i="${i}" aria-label="Remover">×</button></div>`).join('')}<button type="button" class="lnk" data-add="${k}">+ Adicionar</button></div>`).join('');
+ 
+}
+function renderLinks(){
+ LINKNAMES.forEach(t=>{const el=document.querySelector(`[data-link="${t}"]`);el.value=linkOf(d,t);linkUi(el)});
+}
+function linkUi(el){
+ const r=el.parentElement,u=el.value.trim();let a=r.querySelector('a');
+ if(okUrl(u)){if(!a){a=document.createElement('a');a.target='_blank';a.rel='noopener';a.textContent='Abrir';r.appendChild(a)}a.href=u}else if(a)a.remove();
+ const bad=LINKNAMES.filter(t=>{const v=linkOf(d,t);return v&&!okUrl(v)});
+ $('#lkwarn').textContent=bad.length?`O link do ${bad.join(' e do ')} precisa começar com https://`:'';
+}
+function fillForm(){document.querySelectorAll('[data-f]').forEach(el=>el.value=d[el.dataset.f]??'');renderTipos();renderExtra();renderLinks();meta();save()}
+function renderAll(){fillForm();renderCards()}
+function meta(){
+ $('#crumbKey').textContent=d.key||'Novo card';
+ $('#metaLine').textContent=d.id?`${d.key}${d.autor?` criado por ${who(d.autor)}`:''}${d.editadoPor?`, editado por ${who(d.editadoPor)}`:''}. Alterações só valem depois de Salvar.`:'Card novo, ainda não salvo';
+}
+function save(){store.set(DKEY,d)}
+function md(c,plain){
+ const B=s=>plain?s:`**${s}**`,Hm=s=>plain?s.toUpperCase():`### ${s}`,L=[];
+ L.push(plain?(c.titulo||'Sem título'):`## ${c.titulo||'Sem título'}`);
+ L.push(`${B('Sistema:')} ${SISTEMA}`,`${B('Tipo:')} ${TYPES[c.tipo]}`,`${B('Prioridade:')} ${c.prioridade}`);
+ {const ls=LINKNAMES.filter(t=>okUrl(linkOf(c,t)));if(ls.length)L.push(`${B('Links:')} `+ls.map(t=>plain?`${t}: ${linkOf(c,t)}`:`[${t}](${linkOf(c,t)})`).join(' | '))}
+ L.push('',`${B('Como')} ${c.como||'…'}, ${B('quero')} ${c.quero||'…'}, ${B('para')} ${c.para||'…'}.`);
+ if(c.descricao)L.push('',Hm('Descrição'),c.descricao);
+ BY[c.tipo].forEach(k=>{if(k==='params'){const a=paramsOk(c);if(a.length)L.push('',Hm(LISTS[k].t),...a.map(p=>`- ${p.nome}${p.grafico?` (gráfico: ${p.grafico})`:''}`));return}const a=vals(k,c);if(a.length)L.push('',Hm(LISTS[k].t),...a.map(x=>'- '+x))});
+ const crit=c.criterios.split('\n').map(s=>s.trim()).filter(Boolean);
+ if(crit.length)L.push('',Hm('Critérios de aceite'),...crit.map(x=>(plain?'- ':'- [ ] ')+x));
+ return L.join('\n');
+}
+function sugerir(){
+ const c=[];
+ vals('filtros').forEach(f=>c.push(`Filtrar por ${f} exibe apenas os dados correspondentes.`));
+ if(d.tipo==='bi'){paramsOk().forEach(p=>c.push(p.grafico?`Exibe ${p.nome} em gráfico do tipo ${p.grafico.toLowerCase()}.`:`Exibe ${p.nome} em tela.`));vals('comps').forEach(p=>c.push(`Exibe o comparativo ${p}.`))}
+ if(d.tipo==='rel'&&vals('colunas').length)c.push(`O relatório exibe as colunas: ${vals('colunas').join(', ')}.`);
+ if(d.quero)c.push(`O usuário consegue ${d.quero}.`);
+ const atual=d.criterios.split('\n').map(s=>s.trim()).filter(Boolean),novos=c.filter(x=>!atual.includes(x));
+ d.criterios=[...atual,...novos].join('\n');$('#f-crit').value=d.criterios;save();
+ toast(novos.length?`${novos.length} critério(s) adicionado(s)`:'Nenhum critério novo');
+}
+function toast(msg,fn){
+ $('#toastMsg').textContent=msg;undo=fn||null;$('#toastUndo').style.display=undo?'':'none';
+ $('#toast').classList.add('on');clearTimeout(tt);tt=setTimeout(()=>$('#toast').classList.remove('on'),undo?6000:2500);
+}
+async function copy(text){
+ try{await navigator.clipboard.writeText(text);toast('Copiado')}
+ catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}ta.remove();toast(ok?'Copiado':'Não foi possível copiar')}
+}
+function renderCards(){
+ const cnt=t=>cards.filter(c=>!t||c.tipo===t).length;
+ $('#ftabs').innerHTML=[['','Todos'],['bi',PLURAL.bi],['rel',PLURAL.rel]].map(([t,n])=>`<button type="button" data-ft="${t}" class="${ft===t?'on':''}" role="tab" aria-selected="${ft===t}">${n}<small>${cnt(t)}</small></button>`).join('');
+ const q=$('#busca').value.trim().toLowerCase();
+ const list=cards.filter(c=>(!ft||c.tipo===ft)&&(!q||[c.key,c.titulo,c.quero].join(' ').toLowerCase().includes(q)));
+ $('#cards').innerHTML=list.length?list.map(c=>`<div class="li${c.id===d.id?' cur':''}">${ico(c.tipo)}<span class="k">${esc(c.key)}</span><span class="t" data-edit="${esc(c.id)}" tabindex="0" role="button">${esc(c.titulo||'Sem título')}</span><span class="tg tags">${LINKNAMES.filter(t=>okUrl(linkOf(c,t))).map(t=>{const u=linkOf(c,t);return okUrl(u)?`<a class="tag tl" href="${esc(u)}" target="_blank" rel="noopener" title="Abrir ${esc(t)}">${esc(t)} ↗</a>`:`<span class="tag" style="padding-right:6px">${esc(t)}</span>`}).join('')}</span><span class="who">${esc(who(c.editadoPor||c.autor))}</span><span class="p">${esc(c.prioridade)}</span><span class="a"><button type="button" data-copy="${esc(c.id)}">Copiar</button><button type="button" data-rm="${esc(c.id)}">Excluir</button></span></div>`).join('')
+  :`<p class="empty">${cards.length?'Nenhum card neste filtro.':'O backlog está vazio. Preencha o card acima e clique em Salvar.'}</p>`;
+}
+function edit(id){const c=cards.find(c=>c.id==id);if(!c)return;d=clone(c);fillForm();renderCards();window.scrollTo({top:0,behavior:'smooth'})}
+let saving=false;
+async function salvar(){
+ if(saving)return;if(!d.titulo.trim()){toast('Escreva o resumo antes de salvar');$('#f-titulo').focus();return}
+ saving=true;const now=new Date().toISOString();
+ if(!d.id){d.id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);d.key='ECO-'+(Math.max(0,...cards.map(c=>num(c.key)))+1);d.autor=me||'';d.criadoEm=now}
+ else{d.editadoPor=me||'';d.editadoEm=now}
+ try{await persist(d);save();meta();renderCards();toast(`${d.key} salvo`)}
+ catch(e){toast(e&&e.code==='quota_exceeded'?'O backlog atingiu o limite de cards. Exclua cards antigos e salve de novo.':e&&e.code==='invalid_argument'?'Você só tem acesso de leitura a este backlog. Peça acesso de Contribuidor ao dono.':'Não foi possível salvar agora. Tente de novo.')}
+ saving=false;
+}
+
+
+/* ---------- IA (Claude) ---------- */
+let sampleFn=null,aiCtl=null,aiBusy=false;
+async function initAI(){try{sampleFn=await claude.use('sample')}catch(e){sampleFn=null}$('#ai').hidden=!sampleFn}
+const AIERR={not_granted:'A IA não foi liberada nesta visualização.',sampling_disabled:'A IA não está disponível para esta conta.',rate_limited:'Muitos pedidos seguidos. Espere um pouco e tente de novo.',session_expired:'Sua sessão expirou. Entre de novo no Claude.',refused:'A IA não respondeu a esse pedido. Reescreva o pedido.',invalid_json:'A resposta veio incompleta. Clique de novo.',empty_completion:'A IA não devolveu nada. Tente um pedido mais curto.',prompt_too_large:'O card está grande demais para a IA. Encurte a descrição.'};
+function curCard(){return{titulo:d.titulo,como:d.como,quero:d.quero,para:d.para,descricao:d.descricao,filtros:vals('filtros'),...(d.tipo==='bi'?{params:paramsOk(),comps:vals('comps')}:{colunas:vals('colunas')}),criterios:d.criterios.split('\n').map(s=>s.trim()).filter(Boolean)}}
+async function aiRun(mode){
+ if(!sampleFn||aiBusy)return;
+ const pedido=$('#aiIn').value.trim();
+ if(mode==='fill'&&!pedido&&!d.titulo.trim()){$('#aiMsg').textContent='Escreva o pedido do cliente no campo acima.';$('#aiIn').focus();return}
+ const bi=d.tipo==='bi';
+ const shape=`{"titulo":string,"como":string,"quero":string,"para":string,"descricao":string,"filtros":[string],${bi?`"params":[{"nome":string,"grafico":string}],"comps":[string]`:`"colunas":[string]`},"criterios":[string]}`;
+ const prompt=`Você ajuda um analista de requisitos a escrever cards de histórias de usuário para o sistema Eco-Maida. Escreva em português do Brasil, claro e objetivo, no estilo de um card do Jira.
+Tipo do card: ${bi?'BI (painel com filtros em tela, parâmetros exibidos com tipo de gráfico e comparativos)':'Relatório (filtros e colunas)'}.
+${mode==='fill'?'Tarefa: monte o card a partir do pedido do cliente, aproveitando e mantendo o que já está preenchido no card atual.':'Tarefa: revise o card atual. Melhore a redação, corrija português, deixe os critérios de aceite testáveis e complete o que faltar, sem inventar regras de negócio novas.'}
+Pedido do cliente: ${pedido||'(não informado)'}
+Card atual (JSON): ${JSON.stringify(curCard())}
+Regras:
+- "titulo": curto, sem ponto final.
+- "como": só o perfil de quem usa (ex.: "gerente comercial"). "quero": começa com verbo no infinitivo. "para": o ganho para o negócio.
+- "descricao": 1 a 3 frases de contexto. Pode ficar vazia se não houver contexto.
+${bi?`- "params[].grafico": use exatamente um destes: ${GRAF.join(', ')}.
+- "comps": cada item no formato "X atual x Y" (ex.: "Mês atual x mês anterior").`:`- "colunas": na ordem em que devem aparecer no relatório.`}
+- "criterios": de 3 a 8 critérios de aceite, cada um uma frase testável.
+- Não invente nomes de tabelas, campos de banco ou sistemas.
+Responda somente com um objeto JSON neste formato: ${shape}`;
+ const prev=clone(d);aiBusy=true;aiCtl=new AbortController();
+ ['#aiFill','#aiReview'].forEach(s=>$(s).disabled=true);$('#aiStop').hidden=false;$('#aiMsg').textContent='Escrevendo…';
+ try{
+  const r=await sampleFn.json(prompt,{signal:aiCtl.signal,cache:false});
+  if(!r||typeof r!=='object')throw{code:'invalid_json'};
+  const S=v=>typeof v==='string'?v.trim():'',A=v=>Array.isArray(v)?v.map(x=>S(typeof x==='string'?x:'')).filter(Boolean):[];
+  ['titulo','como','quero','para','descricao'].forEach(k=>{const v=S(r[k]);if(v||mode==='review')d[k]=v||d[k]});
+  if(Array.isArray(r.filtros))d.filtros=A(r.filtros);
+  if(bi){if(Array.isArray(r.params))d.params=r.params.filter(p=>p&&S(p.nome)).map(p=>({nome:S(p.nome),grafico:GRAF.includes(S(p.grafico))?S(p.grafico):''}));if(Array.isArray(r.comps))d.comps=A(r.comps)}
+  else if(Array.isArray(r.colunas))d.colunas=A(r.colunas);
+  if(Array.isArray(r.criterios)&&A(r.criterios).length)d.criterios=A(r.criterios).join('\n');
+  fillForm();$('#aiMsg').textContent='';
+  toast(mode==='fill'?'Card preenchido pela IA. Revise e salve.':'Texto revisado pela IA. Revise e salve.',()=>{d=prev;fillForm()});
+ }catch(e){
+  const c=e&&e.code;$('#aiMsg').textContent=c==='cancelled'?'':(AIERR[c]||'A IA não respondeu agora. Tente de novo.');
+  if(c==='not_granted'||c==='sampling_disabled')$('#ai').hidden=true;
+ }finally{aiBusy=false;['#aiFill','#aiReview'].forEach(s=>$(s).disabled=false);$('#aiStop').hidden=true}
+}
+document.addEventListener('input',e=>{
+ const el=e.target;
+ if(el.dataset.f){d[el.dataset.f]=el.value;save()}
+ else if(el.dataset.l){const k=el.dataset.l,i=+el.dataset.i;if(k==='params')d.params[i].nome=el.value;else d[k][i]=el.value;save()}
+ else if(el.dataset.link!==undefined){d.links[el.dataset.link]=el.value;save();linkUi(el)}
+ else if(el.dataset.g!==undefined){d.params[+el.dataset.g].grafico=el.value;save()}
+ else if(el.id==='busca')renderCards();
+});
+document.addEventListener('keydown',e=>{
+ const el=e.target;
+ if(e.key==='Enter'&&el.dataset.l){e.preventDefault();addItem(el.dataset.l)}
+ else if(e.key==='Enter'&&el.dataset.edit)edit(el.dataset.edit);
+});
+function addItem(k){d[k].push(k==='params'?{nome:'',grafico:''}:'');renderExtra();save();const a=document.querySelectorAll(`[data-l="${k}"]`);a[a.length-1]?.focus()}
+document.addEventListener('click',async e=>{
+ const t=e.target.closest('[data-edit]');if(t){edit(t.dataset.edit);return}
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.type){d.tipo=b.dataset.type;renderTipos();renderExtra();save()}
+ else if(b.dataset.ft!==undefined){ft=b.dataset.ft;renderCards()}
+ else if(b.dataset.add)addItem(b.dataset.add);
+ else if(b.dataset.del){d[b.dataset.del].splice(+b.dataset.i,1);renderExtra();save()}
+ else if(b.id==='salvar')salvar();
+ else if(b.id==='novo'){const prev=clone(d);d=blank(d.tipo);fillForm();renderCards();$('#f-titulo').focus();toast('Card novo criado',()=>{d=prev;fillForm()})}
+ else if(b.id==='sugerir')sugerir();
+ else if(b.id==='aiFill')aiRun('fill');
+ else if(b.id==='aiReview')aiRun('review');
+ else if(b.id==='aiStop')aiCtl&&aiCtl.abort();
+ else if(b.id==='copiarMd')copy(md(d));
+ else if(b.id==='copiarTxt')copy(md(d,true));
+ else if(b.dataset.copy)copy(md(cards.find(c=>c.id==b.dataset.copy)));
+ else if(b.dataset.rm){const old=clone(cards.find(c=>c.id==b.dataset.rm));try{await remove(old.id);toast(`${old.key} excluído`,()=>persist(old).catch(()=>toast('Não foi possível desfazer')))}catch(err){toast('Não foi possível excluir. Você pode estar só com acesso de leitura.')}}
+ else if(b.id==='toastUndo'){undo&&undo();undo=null;$('#toast').classList.remove('on')}
+ else if(b.id==='gerarBk'){const j=JSON.stringify({cards,integ});$('#backup').value=j;copy(j)}
+ else if(b.id==='importBk'){
+  let a;try{a=JSON.parse($('#backup').value)}catch(_){toast('Backup inválido. Cole o texto gerado por esta página.');return}
+  a=Array.isArray(a)?a:a&&a.cards;if(!Array.isArray(a)){toast('Backup inválido. Cole o texto gerado por esta página.');return}
+  let n=0;for(const c of a){if(!c||!c.id)continue;const id=String(c.id).replace(/[^\w-]/g,'');if(!id||cards.some(x=>x.id===id))continue;try{await persist(norm(c,id));n++}catch(_){break}}
+  toast(`${n} card(s) importado(s)`)}
+});
+fillForm();renderCards();
+if(window.claude&&claude.use){connect();initAI()}else useLocal('Nesta versão, os cards ficam salvos só neste navegador. O backlog do time e a IA funcionam pelo link do Requisita.ai no Claude.');
+}
+</script>
+</body></html>
