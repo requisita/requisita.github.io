@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+
+    // Master: só a conta cicero.silva@maida.health com e-mail confirmado.
+    function isMaster() {
+      return signedIn()
+        && request.auth.token.email == 'cicero.silva@maida.health'
+        && request.auth.token.email_verified == true;
+    }
+
+    function myUser() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function approved() { return signedIn() && exists(myUser()) && get(myUser()).data.status == 'aprovado'; }
+
+    // Cadastro de usuários: cada pessoa cria o próprio pedido como "pendente".
+    // Só o master aprova, bloqueia ou apaga.
+    match /users/{uid} {
+      allow read: if isMaster() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && (isMaster() || (request.resource.data.status == 'pendente' && request.resource.data.papel == 'membro'));
+      allow update, delete: if isMaster();
+    }
+
+    // Cards: só o master e usuários aprovados leem e escrevem.
+    match /cards/{cardId} {
+      allow read, write: if isMaster() || approved();
+    }
+  }
+}

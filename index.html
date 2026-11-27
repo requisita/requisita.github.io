@@ -38,6 +38,12 @@ textarea.inl{resize:vertical;min-height:64px;width:calc(100% + 10px)}
 .ai textarea:focus{outline:0;border-color:var(--solid)}
 .aibar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 #aiMsg{color:var(--mut);font-size:13px}
+.aihead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.aihead span{font-weight:400;color:var(--mut)}
+.gemcfg{border-top:1px solid var(--line);margin:6px 0 8px;padding-top:8px;font-size:13px;color:var(--mut)}
+.gemcfg p{margin:0 0 6px}
+.gemcfg input,.gemcfg select{flex:1 1 220px;font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:3px;padding:4px 8px;height:34px}
+.gemcfg input:focus,.gemcfg select:focus{outline:0;border-color:var(--solid)}
 .sec h3{font-size:14px;font-weight:600;margin-bottom:4px}
 .sec h3 small{font-weight:400;color:var(--mut)}
 .story{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;column-gap:8px}
@@ -111,6 +117,30 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
 .ftabs button.on{background:var(--solid);color:var(--onsolid)}
 .ftabs small{opacity:.7;margin-left:4px}
 .li .who{color:var(--mut);font-size:12px;white-space:nowrap}
+.nav .who-me{color:#9a9ca0;font-size:13px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#btnOut,#btnUsers{background:transparent;color:#fff;border:1px solid #555}
+#btnOut:hover,#btnUsers:hover{background:#222}
+.gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
+.gate[hidden],.modal[hidden]{display:none}
+.gbox{width:min(400px,100%);border:1px solid var(--line);border-top:3px solid #000;border-radius:3px;padding:24px}
+.gtop{display:flex;gap:12px;align-items:center;margin-bottom:20px}
+.gtop h1{font-size:20px;font-weight:600}.gtop p{margin:0;color:var(--mut)}
+.gbox label{display:block;font-weight:500;margin:10px 0 4px}.gbox label small{color:var(--mut);font-weight:400}
+.gbox input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:3px;padding:6px 8px;height:38px}
+.gbox input:focus{outline:0;border-color:var(--solid)}
+.btn.wide{width:100%;height:40px}
+.gor{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:13px;margin:16px 0 4px}.gor::before,.gor::after{content:"";flex:1;border-top:1px solid var(--line)}
+.gbtns{display:flex;gap:8px;margin:14px 0 6px}.gbtns .btn{flex:1;height:38px}
+.gmsg{color:var(--mut);font-size:13px;margin:10px 0 0;min-height:1em}
+#gWaitMsg{margin:0 0 6px}
+.modal{position:fixed;inset:0;z-index:15;background:rgba(0,0,0,.45);display:grid;place-items:start center;padding:60px 16px;overflow:auto}
+.mbox{width:min(720px,100%);background:var(--bg);border-radius:3px;padding:16px 18px;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.mh h2{font-size:18px;font-weight:600}
+.urow{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.urow b{font-weight:600;display:block}.urow span{color:var(--mut);font-size:13px}
+.ust{font-size:12px;font-weight:600;padding:2px 6px;border-radius:3px;background:var(--hov);text-align:center}
+.ust.aprovado{background:var(--solid);color:var(--onsolid)}.ust.pendente{background:var(--silver);color:#000}
+.uact{display:flex;gap:4px}
 @media(max-width:900px){.issue{grid-template-columns:minmax(0,1fr)}.side{position:static}}
 @media(max-width:600px){.nav span{display:none}.li{grid-template-columns:16px minmax(0,1fr) auto;row-gap:2px}.li .k{grid-column:2}.li .t{grid-column:1/-1;white-space:normal}.li .tg,.li .p,.li .who{display:none}.li .a{grid-column:3;grid-row:1}.bh input{width:100%}}
 </style></head><body>
@@ -118,8 +148,37 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
   <div class="logo" aria-hidden="true">R</div>
   <b>Requisita.ai</b><span>Eco-Maida</span>
   <div class="sp"></div>
+  <span class="who-me" id="whoMe" hidden></span>
+  <button type="button" id="btnUsers" hidden>Usuários</button>
   <button type="button" id="novo">Criar card</button>
+  <button type="button" id="btnOut" hidden>Sair</button>
 </header>
+<div class="gate" id="gate" hidden>
+  <div class="gbox">
+    <div class="gtop"><div class="logo" aria-hidden="true">R</div><div><h1>Requisita.ai</h1><p>Eco-Maida · acesso do time</p></div></div>
+    <div id="gLogin">
+      <button type="button" class="btn pri wide" id="gGoogle">Entrar com Google</button>
+      <div class="gor"><span>ou com e-mail e senha</span></div>
+      <label for="gNome">Nome <small>só para criar conta</small></label><input id="gNome" autocomplete="name">
+      <label for="gEmail">E-mail</label><input id="gEmail" type="email" autocomplete="username">
+      <label for="gPass">Senha</label><input id="gPass" type="password" autocomplete="current-password">
+      <div class="gbtns"><button type="button" class="btn pri" id="gEnter">Entrar</button><button type="button" class="btn" id="gSignup">Criar conta</button></div>
+      <button type="button" class="lnk" id="gReset">Esqueci a senha</button>
+    </div>
+    <div id="gWait" hidden>
+      <p id="gWaitMsg"></p>
+      <div class="gbtns"><button type="button" class="btn pri" id="gRecheck">Verificar de novo</button><button type="button" class="btn" id="gOut">Sair</button></div>
+    </div>
+    <p class="gmsg" id="gMsg" role="status"></p>
+  </div>
+</div>
+<div class="modal" id="umodal" hidden>
+  <div class="mbox" role="dialog" aria-label="Usuários">
+    <div class="mh"><h2>Usuários</h2><button type="button" class="x" id="uClose" aria-label="Fechar">×</button></div>
+    <div class="ftabs" id="uTabs"></div>
+    <div id="ulist"></div>
+  </div>
+</div>
 
 <main class="wrap">
   <div class="crumb">Requisita.ai / Eco-Maida / <strong id="crumbKey">Novo card</strong></div>
@@ -133,8 +192,14 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
         <button type="button" class="btn" id="copiarTxt">Copiar texto simples</button>
         <button type="button" class="btn" id="sugerir">Sugerir critérios</button>
       </div>
-      <div class="ai" id="ai" hidden>
-        <label for="aiIn">Escrever com IA</label>
+      <div class="ai" id="ai">
+        <div class="aihead"><label for="aiIn">Escrever com IA <span id="aiProv"></span></label><button type="button" class="lnk" id="gemCfgBtn" hidden>Configurar Gemini</button></div>
+        <div class="gemcfg" id="gemCfg" hidden>
+          <p>Cole a sua chave da API do Gemini (crie em aistudio.google.com, em "Get API key"). Ela fica salva só neste navegador e nunca vai para o GitHub.</p>
+          <div class="aibar"><input type="password" id="gemKey" placeholder="Chave da API do Gemini" aria-label="Chave da API do Gemini" autocomplete="off"><button type="button" class="btn pri" id="gemConnect">Conectar</button></div>
+          <div class="aibar" id="gemModelRow" hidden><label for="gemModel" style="margin:0">Modelo</label><select id="gemModel"></select><button type="button" class="lnk" id="gemForget">Remover chave</button></div>
+          <p id="gemMsg" role="status"></p>
+        </div>
         <textarea id="aiIn" rows="2" placeholder="Conte com suas palavras o que o cliente pediu. Ex.: painel de vendas por loja, filtro por período, comparar com o mês anterior em colunas"></textarea>
         <div class="aibar">
           <button type="button" class="btn pri" id="aiFill">Preencher card</button>
@@ -199,7 +264,7 @@ const GRAF=['Cartão (número)','Barras','Colunas','Linhas','Área','Pizza','Ros
 const pnome=x=>typeof x==='string'?x:String(x&&x.nome||'');
 const LINKNAMES=['Cervello','Jira'];
 const BY={bi:['filtros','params','comps'],rel:['filtros','colunas']};
-const FIELDS=['key','tipo','titulo','prioridade','como','quero','para','descricao','criterios','filtros','params','comps','colunas','integracoes','links','integDetalhe','autor','criadoEm','editadoPor','editadoEm'];
+const FIELDS=['key','tipo','titulo','prioridade','como','quero','para','descricao','criterios','filtros','params','comps','colunas','integracoes','links','integDetalhe','autor','autorNome','criadoEm','editadoPor','editadoNome','editadoEm'];
 const blank=t=>({id:null,key:'',tipo:TYPES[t]?t:'bi',titulo:'',prioridade:'Média',como:'',quero:'',para:'',descricao:'',criterios:'',filtros:[],params:[],comps:[],colunas:[],integracoes:[],links:{},integDetalhe:''});
 const norm=(c,id)=>{const o=Object.assign(blank(c.tipo),{});FIELDS.forEach(k=>{if(c[k]!==undefined)o[k]=c[k]});if(!TYPES[o.tipo])o.tipo='bi';['filtros','params','comps','colunas','integracoes'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[];o[k]=k==='params'?o[k].map(x=>({nome:pnome(x),grafico:String(x&&x.grafico||'')})):o[k].map(x=>String(x??''))});['titulo','como','quero','para','descricao','criterios','integDetalhe','prioridade','key'].forEach(k=>o[k]=String(o[k]??''));{const l={};if(o.links&&typeof o.links==='object')Object.keys(o.links).forEach(k=>{l[String(k)]=String(o.links[k]??'')});o.links=l}o.id=id;return o};
 const okUrl=u=>/^https:\/\/\S+$/i.test(String(u||'').trim());
@@ -210,14 +275,75 @@ const vals=(k,c=d)=>(c[k]||[]).map(s=>pnome(s).trim()).filter(Boolean);
 const paramsOk=(c=d)=>(c.params||[]).filter(p=>pnome(p).trim()).map(p=>({nome:pnome(p).trim(),grafico:p.grafico||''}));
 const body=c=>{const o={};FIELDS.forEach(k=>{if(c[k]!==undefined)o[k]=c[k]});return o};
 
+/* ---------- Firebase (versão do GitHub) ----------
+   Cole aqui a configuração do seu app Web do Firebase (Configurações do projeto > Seus apps).
+   Esses dados não são senha: podem ficar no repositório público. A segurança vem das regras do Firestore. */
+const FIREBASE_CONFIG={apiKey:"AIzaSyBjISGIXktzMFy3t_hinDF8iFZD8bGOxaY",authDomain:"requisita.firebaseapp.com",projectId:"requisita",storageBucket:"requisita.firebasestorage.app",messagingSenderId:"696965923031",appId:"1:696965923031:web:d1f0da3979e237e66bb092"};
+const MASTER='cicero.silva@maida.health';
+let fb=null,unsubCards=null,unsubMe=null,unsubUsers=null,users=[],uft='pendente',myName='',pendingName='';
+const fbOn=()=>!!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId);
+const AUTHERR={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail inválido.','auth/email-already-in-use':'Já existe conta com esse e-mail. Use Entrar.','auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.','auth/popup-closed-by-user':'Login com Google cancelado.','auth/popup-blocked':'O navegador bloqueou a janela do Google. Libere pop-ups para este site.','auth/unauthorized-domain':'Este site não está autorizado no Firebase. Adicione o domínio em Authentication > Configurações > Domínios autorizados.','auth/operation-not-allowed':'Este tipo de login não está ativado no Firebase.','auth/too-many-requests':'Muitas tentativas. Espere alguns minutos.','auth/network-request-failed':'Sem conexão com a internet.'};
+const gmsg=t=>{$('#gMsg').textContent=t||''};
+const aerr=e=>AUTHERR[e&&e.code]||'Não foi possível concluir. Tente de novo.';
+function showGate(mode,msg){$('#gate').hidden=false;$('#gLogin').hidden=mode!=='login';$('#gWait').hidden=mode!=='wait';if(msg)$('#gWaitMsg').textContent=msg;['#whoMe','#btnUsers','#btnOut'].forEach(s=>$(s).hidden=true)}
+async function fbStart(){
+ showGate('login');gmsg('Carregando…');
+ try{
+  const base='https://www.gstatic.com/firebasejs/10.12.2/';
+  const [A,AU,FS]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+  const app=A.initializeApp(FIREBASE_CONFIG);
+  fb={auth:AU.getAuth(app),fs:FS.getFirestore(app),AU,FS};
+  gmsg('');AU.onAuthStateChanged(fb.auth,onUser);
+ }catch(e){gmsg('Não foi possível carregar o Firebase. Confira a internet e a configuração.')}
+}
+function stopSubs(){[unsubCards,unsubMe,unsubUsers].forEach(f=>f&&f());unsubCards=unsubMe=unsubUsers=null}
+async function onUser(u){
+ stopSubs();cards=[];renderCards();$('#umodal').hidden=true;
+ if(!u){showGate('login');return}
+ const {FS}=fb,isPwd=u.providerData.some(p=>p.providerId==='password'),master=(u.email||'').toLowerCase()===MASTER;
+ if(isPwd&&!u.emailVerified){showGate('wait',`Enviamos um link de confirmação para ${u.email}. Abra o e-mail, confirme e clique em Verificar de novo.`);return}
+ const ref=FS.doc(fb.fs,'users',u.uid);
+ try{
+  const s=await FS.getDoc(ref);
+  if(!s.exists())await FS.setDoc(ref,{email:u.email||'',nome:u.displayName||pendingName||'',status:master?'aprovado':'pendente',papel:master?'master':'membro',criadoEm:new Date().toISOString()});
+ }catch(e){showGate('wait','Não foi possível abrir seu cadastro. O master precisa publicar as regras do Firestore.');return}
+ unsubMe=FS.onSnapshot(ref,s=>{
+  const st=s.exists()?s.data().status:'pendente';
+  if(!master&&st!=='aprovado'){if(unsubCards){unsubCards();unsubCards=null;cards=[];renderCards()}showGate('wait',st==='bloqueado'?'Seu acesso foi bloqueado pelo master.':'Cadastro recebido. Aguarde o master aprovar seu acesso. Esta tela abre sozinha quando for aprovado.');return}
+  if(!unsubCards)enterApp(u,master,s.exists()?s.data().nome:'');
+ },()=>showGate('wait','Não foi possível ler seu cadastro.'));
+}
+function enterApp(u,master,nome){
+ const {FS}=fb;me=u.uid;myName=nome||u.displayName||u.email;names[me]=myName;
+ $('#gate').hidden=true;$('#whoMe').textContent=u.email;$('#whoMe').hidden=false;$('#btnOut').hidden=false;$('#btnUsers').hidden=!master;
+ $('#syncLine').textContent='Conectando ao backlog do time…';
+ unsubCards=FS.onSnapshot(FS.collection(fb.fs,'cards'),s=>{
+  cards=s.docs.map(x=>norm(x.data()||{},x.id)).sort((a,b)=>num(b.key)-num(a.key));renderCards();meta();
+  $('#syncLine').textContent='Backlog do time no Firebase. Só usuários aprovados pelo master acessam.';
+ },()=>{$('#syncLine').textContent='Sem permissão para ler o backlog. Fale com o master.'});
+ if(master)watchUsers();
+}
+function watchUsers(){
+ const {FS}=fb;unsubUsers=FS.onSnapshot(FS.collection(fb.fs,'users'),s=>{users=s.docs.map(x=>({id:x.id,...x.data()}));const p=users.filter(x=>x.status==='pendente').length;$('#btnUsers').textContent=p?`Usuários (${p} aguardando)`:'Usuários';renderUsers()},()=>{});
+}
+function renderUsers(){
+ const cnt=s=>users.filter(x=>x.status===s).length;
+ $('#uTabs').innerHTML=[['pendente','Aguardando'],['aprovado','Aprovados'],['bloqueado','Bloqueados']].map(([s,n])=>`<button type="button" data-uft="${s}" class="${uft===s?'on':''}">${n}<small>${cnt(s)}</small></button>`).join('');
+ const l=users.filter(x=>x.status===uft).sort((a,b)=>String(b.criadoEm).localeCompare(String(a.criadoEm)));
+ $('#ulist').innerHTML=l.length?l.map(x=>{const self=x.id===me;return `<div class="urow"><div><b>${esc(x.nome||x.email)}</b><span>${esc(x.email)}${x.criadoEm?' · pediu acesso em '+esc(new Date(x.criadoEm).toLocaleDateString('pt-BR')):''}</span></div><span class="ust ${esc(x.status)}">${x.papel==='master'?'Master':esc(x.status)}</span><div class="uact">${self?'':`${x.status!=='aprovado'?`<button type="button" class="btn pri" data-ust="aprovado" data-uid="${esc(x.id)}">Aprovar</button>`:''}${x.status!=='bloqueado'?`<button type="button" class="btn" data-ust="bloqueado" data-uid="${esc(x.id)}">${x.status==='pendente'?'Recusar':'Bloquear'}</button>`:''}`}</div></div>`}).join(''):`<p class="empty">${uft==='pendente'?'Ninguém aguardando aprovação.':'Nenhum usuário aqui.'}</p>`;
+}
+async function setStatus(uid,st){try{await fb.FS.updateDoc(fb.FS.doc(fb.fs,'users',uid),{status:st,decididoEm:new Date().toISOString()});toast(st==='aprovado'?'Acesso aprovado':'Acesso bloqueado')}catch(e){toast('Não foi possível alterar. Confira as regras do Firestore.')}}
+
 /* ---------- dados: backlog do time (db) ou este navegador ---------- */
 const local={on:false};
 function useLocal(msg){local.on=true;cards=store.get(LKEY,[]).map(c=>norm(c,String(c.id)));integ=store.get(IKEY,integ);$('#syncLine').textContent=msg;renderAll()}
 async function persist(c){
+ if(fb){await fb.FS.setDoc(fb.FS.doc(fb.fs,'cards',c.id),body(c));return}
  if(local.on){const i=cards.findIndex(x=>x.id===c.id);i>=0?cards[i]=clone(c):cards.unshift(clone(c));store.set(LKEY,cards);renderCards();return}
  await db.collection('cards').doc(c.id).set(body(c));
 }
 async function remove(id){
+ if(fb){await fb.FS.deleteDoc(fb.FS.doc(fb.fs,'cards',id));return}
  if(local.on){cards=cards.filter(x=>x.id!==id);store.set(LKEY,cards);renderCards();return}
  await db.collection('cards').doc(id).delete();
 }
@@ -244,7 +370,7 @@ async function resolveNames(){
  if(!user)return;const ids=[...new Set(cards.flatMap(c=>[c.autor,c.editadoPor]).filter(Boolean))];if(!ids.length)return;
  try{const ps=await user.profiles(ids);ids.forEach(i=>names[i]=(ps&&ps[i]&&ps[i].name)||'Alguém do time');renderCards();meta()}catch(e){}
 }
-const who=id=>id?(id===me?'você':(names[id]||'Alguém do time')):'';
+const who=(id,nm)=>id?(id===me?'você':(names[id]||nm||'Alguém do time')):'';
 
 /* ---------- interface ---------- */
 function renderTipos(){
@@ -268,7 +394,7 @@ function fillForm(){document.querySelectorAll('[data-f]').forEach(el=>el.value=d
 function renderAll(){fillForm();renderCards()}
 function meta(){
  $('#crumbKey').textContent=d.key||'Novo card';
- $('#metaLine').textContent=d.id?`${d.key}${d.autor?` criado por ${who(d.autor)}`:''}${d.editadoPor?`, editado por ${who(d.editadoPor)}`:''}. Alterações só valem depois de Salvar.`:'Card novo, ainda não salvo';
+ $('#metaLine').textContent=d.id?`${d.key}${d.autor?` criado por ${who(d.autor,d.autorNome)}`:''}${d.editadoPor?`, editado por ${who(d.editadoPor,d.editadoNome)}`:''}. Alterações só valem depois de Salvar.`:'Card novo, ainda não salvo';
 }
 function save(){store.set(DKEY,d)}
 function md(c,plain){
@@ -306,7 +432,7 @@ function renderCards(){
  $('#ftabs').innerHTML=[['','Todos'],['bi',PLURAL.bi],['rel',PLURAL.rel]].map(([t,n])=>`<button type="button" data-ft="${t}" class="${ft===t?'on':''}" role="tab" aria-selected="${ft===t}">${n}<small>${cnt(t)}</small></button>`).join('');
  const q=$('#busca').value.trim().toLowerCase();
  const list=cards.filter(c=>(!ft||c.tipo===ft)&&(!q||[c.key,c.titulo,c.quero].join(' ').toLowerCase().includes(q)));
- $('#cards').innerHTML=list.length?list.map(c=>`<div class="li${c.id===d.id?' cur':''}">${ico(c.tipo)}<span class="k">${esc(c.key)}</span><span class="t" data-edit="${esc(c.id)}" tabindex="0" role="button">${esc(c.titulo||'Sem título')}</span><span class="tg tags">${LINKNAMES.filter(t=>okUrl(linkOf(c,t))).map(t=>{const u=linkOf(c,t);return okUrl(u)?`<a class="tag tl" href="${esc(u)}" target="_blank" rel="noopener" title="Abrir ${esc(t)}">${esc(t)} ↗</a>`:`<span class="tag" style="padding-right:6px">${esc(t)}</span>`}).join('')}</span><span class="who">${esc(who(c.editadoPor||c.autor))}</span><span class="p">${esc(c.prioridade)}</span><span class="a"><button type="button" data-copy="${esc(c.id)}">Copiar</button><button type="button" data-rm="${esc(c.id)}">Excluir</button></span></div>`).join('')
+ $('#cards').innerHTML=list.length?list.map(c=>`<div class="li${c.id===d.id?' cur':''}">${ico(c.tipo)}<span class="k">${esc(c.key)}</span><span class="t" data-edit="${esc(c.id)}" tabindex="0" role="button">${esc(c.titulo||'Sem título')}</span><span class="tg tags">${LINKNAMES.filter(t=>okUrl(linkOf(c,t))).map(t=>{const u=linkOf(c,t);return okUrl(u)?`<a class="tag tl" href="${esc(u)}" target="_blank" rel="noopener" title="Abrir ${esc(t)}">${esc(t)} ↗</a>`:`<span class="tag" style="padding-right:6px">${esc(t)}</span>`}).join('')}</span><span class="who">${esc(c.editadoPor?who(c.editadoPor,c.editadoNome):who(c.autor,c.autorNome))}</span><span class="p">${esc(c.prioridade)}</span><span class="a"><button type="button" data-copy="${esc(c.id)}">Copiar</button><button type="button" data-rm="${esc(c.id)}">Excluir</button></span></div>`).join('')
   :`<p class="empty">${cards.length?'Nenhum card neste filtro.':'O backlog está vazio. Preencha o card acima e clique em Salvar.'}</p>`;
 }
 function edit(id){const c=cards.find(c=>c.id==id);if(!c)return;d=clone(c);fillForm();renderCards();window.scrollTo({top:0,behavior:'smooth'})}
@@ -314,21 +440,54 @@ let saving=false;
 async function salvar(){
  if(saving)return;if(!d.titulo.trim()){toast('Escreva o resumo antes de salvar');$('#f-titulo').focus();return}
  saving=true;const now=new Date().toISOString();
- if(!d.id){d.id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);d.key='ECO-'+(Math.max(0,...cards.map(c=>num(c.key)))+1);d.autor=me||'';d.criadoEm=now}
- else{d.editadoPor=me||'';d.editadoEm=now}
+ if(!d.id){d.id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);d.key='ECO-'+(Math.max(0,...cards.map(c=>num(c.key)))+1);d.autor=me||'';d.autorNome=myName||'';d.criadoEm=now}
+ else{d.editadoPor=me||'';d.editadoNome=myName||'';d.editadoEm=now}
  try{await persist(d);save();meta();renderCards();toast(`${d.key} salvo`)}
  catch(e){toast(e&&e.code==='quota_exceeded'?'O backlog atingiu o limite de cards. Exclua cards antigos e salve de novo.':e&&e.code==='invalid_argument'?'Você só tem acesso de leitura a este backlog. Peça acesso de Contribuidor ao dono.':'Não foi possível salvar agora. Tente de novo.')}
  saving=false;
 }
 
 
-/* ---------- IA (Claude) ---------- */
+/* ---------- IA: Claude (link do Claude) ou Gemini (GitHub) ---------- */
 let sampleFn=null,aiCtl=null,aiBusy=false;
-async function initAI(){try{sampleFn=await claude.use('sample')}catch(e){sampleFn=null}$('#ai').hidden=!sampleFn}
-const AIERR={not_granted:'A IA não foi liberada nesta visualização.',sampling_disabled:'A IA não está disponível para esta conta.',rate_limited:'Muitos pedidos seguidos. Espere um pouco e tente de novo.',session_expired:'Sua sessão expirou. Entre de novo no Claude.',refused:'A IA não respondeu a esse pedido. Reescreva o pedido.',invalid_json:'A resposta veio incompleta. Clique de novo.',empty_completion:'A IA não devolveu nada. Tente um pedido mais curto.',prompt_too_large:'O card está grande demais para a IA. Encurte a descrição.'};
+const GK='requisita.gemini.key',GM='requisita.gemini.model',GAPI='https://generativelanguage.googleapis.com/v1beta/';
+const gem={key:store.get(GK,''),model:store.get(GM,'')};
+function setProv(){
+ if(sampleFn){$('#aiProv').textContent='usando o Claude';$('#gemCfgBtn').hidden=true;$('#gemCfg').hidden=true;return}
+ $('#gemCfgBtn').hidden=false;
+ $('#aiProv').textContent=gem.key?`usando o Gemini${gem.model?' ('+gem.model.replace('models/','')+')':''}`:'com o Gemini';
+}
+async function initAI(){
+ try{sampleFn=window.claude&&claude.use?await claude.use('sample'):null}catch(e){sampleFn=null}
+ setProv();if(!sampleFn&&gem.key)listModels(true);
+}
+async function listModels(quiet){
+ const r=await fetch(GAPI+'models?pageSize=200',{headers:{'x-goog-api-key':gem.key}}).catch(()=>null);
+ if(!r||!r.ok){if(!quiet)$('#gemMsg').textContent=r&&(r.status===400||r.status===403)?'Chave inválida ou sem permissão. Confira a chave e tente de novo.':'Não foi possível falar com o Gemini. Confira sua internet.';return false}
+ const j=await r.json().catch(()=>({}));
+ const ms=(j.models||[]).filter(m=>String(m.name||'').includes('gemini')&&(m.supportedGenerationMethods||[]).includes('generateContent')&&!/vision|embedding|tts|image|audio|live/i.test(m.name)).map(m=>String(m.name)).sort().reverse();
+ if(!ms.length){if(!quiet)$('#gemMsg').textContent='Essa chave não tem modelos do Gemini disponíveis.';return false}
+ if(!ms.includes(gem.model)){gem.model=ms.find(m=>/flash/.test(m)&&!/lite|preview|exp/.test(m))||ms.find(m=>/flash/.test(m))||ms[0];store.set(GM,gem.model)}
+ $('#gemModel').innerHTML=ms.map(m=>`<option value="${esc(m)}"${m===gem.model?' selected':''}>${esc(m.replace('models/',''))}</option>`).join('');
+ $('#gemModelRow').hidden=false;setProv();return true;
+}
+async function askGemini(prompt,signal){
+ if(!gem.key)throw{code:'no_key'};
+ if(!gem.model&&!(await listModels(false)))throw{code:'no_key'};
+ const r=await fetch(GAPI+gem.model+':generateContent',{method:'POST',signal,headers:{'Content-Type':'application/json','x-goog-api-key':gem.key},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.4,responseMimeType:'application/json'}})}).catch(e=>{throw{code:signal.aborted?'cancelled':'upstream_error'}});
+ if(r.status===429)throw{code:'rate_limited'};
+ if(r.status===400||r.status===401||r.status===403)throw{code:'bad_key'};
+ if(!r.ok)throw{code:'upstream_error'};
+ const j=await r.json().catch(()=>null);
+ const t=((j&&j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts)||[]).map(p=>p.text||'').join('').trim();
+ if(!t)throw{code:'empty_completion'};
+ try{return JSON.parse(t)}catch(_){const m=t.match(/[{\[][\s\S]*[}\]]/);if(m)try{return JSON.parse(m[0])}catch(__){}throw{code:'invalid_json'}}
+}
+const AIERR={not_granted:'A IA não foi liberada nesta visualização.',sampling_disabled:'A IA não está disponível para esta conta.',rate_limited:'Muitos pedidos seguidos ou limite da conta atingido. Espere um pouco e tente de novo.',session_expired:'Sua sessão expirou. Entre de novo no Claude.',refused:'A IA não respondeu a esse pedido. Reescreva o pedido.',invalid_json:'A resposta veio incompleta. Clique de novo.',empty_completion:'A IA não devolveu nada. Tente um pedido mais curto.',prompt_too_large:'O card está grande demais para a IA. Encurte a descrição.',bad_key:'O Gemini recusou a chave. Confira a chave em Configurar Gemini.',no_key:'Configure a chave do Gemini para usar a IA.'};
 function curCard(){return{titulo:d.titulo,como:d.como,quero:d.quero,para:d.para,descricao:d.descricao,filtros:vals('filtros'),...(d.tipo==='bi'?{params:paramsOk(),comps:vals('comps')}:{colunas:vals('colunas')}),criterios:d.criterios.split('\n').map(s=>s.trim()).filter(Boolean)}}
 async function aiRun(mode){
- if(!sampleFn||aiBusy)return;
+ if(aiBusy)return;
+ if(!sampleFn&&!gem.key){$('#gemCfg').hidden=false;$('#gemKey').focus();$('#aiMsg').textContent='Conecte o Gemini para usar a IA.';return}
  const pedido=$('#aiIn').value.trim();
  if(mode==='fill'&&!pedido&&!d.titulo.trim()){$('#aiMsg').textContent='Escreva o pedido do cliente no campo acima.';$('#aiIn').focus();return}
  const bi=d.tipo==='bi';
@@ -350,10 +509,10 @@ Responda somente com um objeto JSON neste formato: ${shape}`;
  const prev=clone(d);aiBusy=true;aiCtl=new AbortController();
  ['#aiFill','#aiReview'].forEach(s=>$(s).disabled=true);$('#aiStop').hidden=false;$('#aiMsg').textContent='Escrevendo…';
  try{
-  const r=await sampleFn.json(prompt,{signal:aiCtl.signal,cache:false});
+  const r=sampleFn?await sampleFn.json(prompt,{signal:aiCtl.signal,cache:false}):await askGemini(prompt,aiCtl.signal);
   if(!r||typeof r!=='object')throw{code:'invalid_json'};
   const S=v=>typeof v==='string'?v.trim():'',A=v=>Array.isArray(v)?v.map(x=>S(typeof x==='string'?x:'')).filter(Boolean):[];
-  ['titulo','como','quero','para','descricao'].forEach(k=>{const v=S(r[k]);if(v||mode==='review')d[k]=v||d[k]});
+  ['titulo','como','quero','para','descricao'].forEach(k=>{const v=S(r[k]);if(v)d[k]=v});
   if(Array.isArray(r.filtros))d.filtros=A(r.filtros);
   if(bi){if(Array.isArray(r.params))d.params=r.params.filter(p=>p&&S(p.nome)).map(p=>({nome:S(p.nome),grafico:GRAF.includes(S(p.grafico))?S(p.grafico):''}));if(Array.isArray(r.comps))d.comps=A(r.comps)}
   else if(Array.isArray(r.colunas))d.colunas=A(r.colunas);
@@ -362,7 +521,8 @@ Responda somente com um objeto JSON neste formato: ${shape}`;
   toast(mode==='fill'?'Card preenchido pela IA. Revise e salve.':'Texto revisado pela IA. Revise e salve.',()=>{d=prev;fillForm()});
  }catch(e){
   const c=e&&e.code;$('#aiMsg').textContent=c==='cancelled'?'':(AIERR[c]||'A IA não respondeu agora. Tente de novo.');
-  if(c==='not_granted'||c==='sampling_disabled')$('#ai').hidden=true;
+  if(sampleFn&&(c==='not_granted'||c==='sampling_disabled'))$('#ai').hidden=true;
+  if(c==='bad_key'||c==='no_key')$('#gemCfg').hidden=false;
  }finally{aiBusy=false;['#aiFill','#aiReview'].forEach(s=>$(s).disabled=false);$('#aiStop').hidden=true}
 }
 document.addEventListener('input',e=>{
@@ -373,6 +533,7 @@ document.addEventListener('input',e=>{
  else if(el.dataset.g!==undefined){d.params[+el.dataset.g].grafico=el.value;save()}
  else if(el.id==='busca')renderCards();
 });
+document.addEventListener('change',e=>{if(e.target.id==='gemModel'){gem.model=e.target.value;store.set(GM,gem.model);setProv()}});
 document.addEventListener('keydown',e=>{
  const el=e.target;
  if(e.key==='Enter'&&el.dataset.l){e.preventDefault();addItem(el.dataset.l)}
@@ -392,10 +553,23 @@ document.addEventListener('click',async e=>{
  else if(b.id==='aiFill')aiRun('fill');
  else if(b.id==='aiReview')aiRun('review');
  else if(b.id==='aiStop')aiCtl&&aiCtl.abort();
+ else if(b.id==='gemCfgBtn'){$('#gemCfg').hidden=!$('#gemCfg').hidden;if(!$('#gemCfg').hidden){$('#gemKey').value=gem.key;$('#gemKey').focus()}}
+ else if(b.id==='gemConnect'){const k=$('#gemKey').value.trim();if(!k){$('#gemMsg').textContent='Cole a chave primeiro.';return}gem.key=k;gem.model='';$('#gemMsg').textContent='Conectando…';if(await listModels(false)){store.set(GK,k);$('#gemMsg').textContent='Gemini conectado.';setProv();setTimeout(()=>{$('#gemCfg').hidden=true;$('#gemMsg').textContent=''},1500)}else{gem.key=store.get(GK,'')}}
+ else if(b.id==='gemForget'){gem.key='';gem.model='';try{localStorage.removeItem(GK);localStorage.removeItem(GM)}catch(_){}$('#gemKey').value='';$('#gemModelRow').hidden=true;$('#gemMsg').textContent='Chave removida deste navegador.';setProv()}
  else if(b.id==='copiarMd')copy(md(d));
  else if(b.id==='copiarTxt')copy(md(d,true));
  else if(b.dataset.copy)copy(md(cards.find(c=>c.id==b.dataset.copy)));
  else if(b.dataset.rm){const old=clone(cards.find(c=>c.id==b.dataset.rm));try{await remove(old.id);toast(`${old.key} excluído`,()=>persist(old).catch(()=>toast('Não foi possível desfazer')))}catch(err){toast('Não foi possível excluir. Você pode estar só com acesso de leitura.')}}
+ else if(b.id==='gGoogle'){gmsg('Abrindo o Google…');try{await fb.AU.signInWithPopup(fb.auth,new fb.AU.GoogleAuthProvider());gmsg('')}catch(err){gmsg(aerr(err))}}
+ else if(b.id==='gEnter'){const em=$('#gEmail').value.trim(),pw=$('#gPass').value;if(!em||!pw){gmsg('Preencha e-mail e senha.');return}gmsg('Entrando…');try{await fb.AU.signInWithEmailAndPassword(fb.auth,em,pw);gmsg('')}catch(err){gmsg(aerr(err))}}
+ else if(b.id==='gSignup'){const em=$('#gEmail').value.trim(),pw=$('#gPass').value;pendingName=$('#gNome').value.trim();if(!em||!pw){gmsg('Preencha e-mail e senha para criar a conta.');return}gmsg('Criando conta…');try{const cr=await fb.AU.createUserWithEmailAndPassword(fb.auth,em,pw);if(pendingName)await fb.AU.updateProfile(cr.user,{displayName:pendingName});await fb.AU.sendEmailVerification(cr.user);gmsg('')}catch(err){gmsg(aerr(err))}}
+ else if(b.id==='gReset'){const em=$('#gEmail').value.trim();if(!em){gmsg('Escreva seu e-mail e clique de novo em Esqueci a senha.');return}try{await fb.AU.sendPasswordResetEmail(fb.auth,em);gmsg('Enviamos um link para criar uma nova senha.')}catch(err){gmsg(aerr(err))}}
+ else if(b.id==='gRecheck'){const u=fb.auth.currentUser;if(u){await u.reload().catch(()=>{});onUser(fb.auth.currentUser)}}
+ else if(b.id==='gOut'||b.id==='btnOut'){await fb.AU.signOut(fb.auth)}
+ else if(b.id==='btnUsers'){$('#umodal').hidden=false;renderUsers()}
+ else if(b.id==='uClose'){$('#umodal').hidden=true}
+ else if(b.dataset.uft){uft=b.dataset.uft;renderUsers()}
+ else if(b.dataset.ust){setStatus(b.dataset.uid,b.dataset.ust)}
  else if(b.id==='toastUndo'){undo&&undo();undo=null;$('#toast').classList.remove('on')}
  else if(b.id==='gerarBk'){const j=JSON.stringify({cards,integ});$('#backup').value=j;copy(j)}
  else if(b.id==='importBk'){
@@ -405,7 +579,8 @@ document.addEventListener('click',async e=>{
   toast(`${n} card(s) importado(s)`)}
 });
 fillForm();renderCards();
-if(window.claude&&claude.use){connect();initAI()}else useLocal('Nesta versão, os cards ficam salvos só neste navegador. O backlog do time e a IA funcionam pelo link do Requisita.ai no Claude.');
+initAI();
+if(window.claude&&claude.use){connect()}else if(fbOn()){fbStart()}else useLocal('Firebase ainda não configurado: os cards ficam salvos só neste navegador.');
 }
 </script>
 </body></html>
