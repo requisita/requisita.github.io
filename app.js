@@ -1,7 +1,5 @@
 /* Requisita.ai: código do app. Fica em arquivo separado para a página poder usar uma
    política de segurança (CSP) que bloqueia qualquer script injetado. */
-// Não deixa a página ser aberta dentro de outro site (proteção contra clickjacking).
-if(window.top!==window.self){try{window.top.location=window.self.location.href}catch(_){document.documentElement.style.display='none'}}
 document.getElementById('form').addEventListener('submit',e=>e.preventDefault());
 {
 const SISTEMA='Eco-Maida',LKEY='ecomaida.cards.v1',DKEY='ecomaida.draft.v1',IKEY='ecomaida.integ.v1';
