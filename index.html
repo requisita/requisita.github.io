@@ -23,7 +23,9 @@ h1,h2,h3{margin:0}
 .inl{width:100%;font:inherit;color:var(--ink);background:transparent;border:2px solid transparent;border-radius:3px;padding:6px 8px;margin-left:-10px;min-height:36px}
 .inl:hover{background:var(--hov)}
 .inl:focus{outline:0;border-color:var(--solid);background:var(--bg)}
-textarea.inl{resize:vertical;min-height:64px;width:calc(100% + 10px)}
+textarea.inl{resize:vertical;min-height:64px;width:calc(100% + 10px);overflow:hidden;line-height:1.55}
+textarea.inl[data-f=descricao]{min-height:160px}
+textarea.inl[data-f=criterios]{min-height:120px}
 #f-titulo{font-size:24px;font-weight:500;line-height:1.25;margin-bottom:4px}
 .bar{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 18px}
 .btn{height:32px;border:0;border-radius:3px;background:var(--hov);color:var(--ink);font:500 14px inherit;font-family:inherit;padding:0 12px;cursor:pointer}
@@ -242,7 +244,7 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
     <div class="list" id="cards"></div>
     <details>
       <summary>Backup e importação</summary>
-      <p>Gere uma cópia de todos os cards em texto, ou importe uma cópia gerada antes.</p>
+      <p>Gere uma cópia de todos os cards em texto, ou importe uma cópia gerada antes. Cards com o mesmo código interno são atualizados.</p>
       <textarea id="backup" rows="3" aria-label="Backup"></textarea>
       <div class="bar"><button type="button" class="btn" id="gerarBk">Gerar backup e copiar</button><button type="button" class="btn" id="importBk">Importar backup</button></div>
     </details>
@@ -390,7 +392,9 @@ function linkUi(el){
  const bad=LINKNAMES.filter(t=>{const v=linkOf(d,t);return v&&!okUrl(v)});
  $('#lkwarn').textContent=bad.length?`O link do ${bad.join(' e do ')} precisa começar com https://`:'';
 }
-function fillForm(){document.querySelectorAll('[data-f]').forEach(el=>el.value=d[el.dataset.f]??'');renderTipos();renderExtra();renderLinks();meta();save()}
+function grow(el){if(!el||el.tagName!=='TEXTAREA'||!el.classList.contains('inl'))return;el.style.height='auto';el.style.height=(el.scrollHeight+4)+'px'}
+function growAll(){document.querySelectorAll('textarea.inl').forEach(grow)}
+function fillForm(){document.querySelectorAll('[data-f]').forEach(el=>el.value=d[el.dataset.f]??'');requestAnimationFrame(growAll);renderTipos();renderExtra();renderLinks();meta();save()}
 function renderAll(){fillForm();renderCards()}
 function meta(){
  $('#crumbKey').textContent=d.key||'Novo card';
@@ -416,7 +420,7 @@ function sugerir(){
  if(d.tipo==='rel'&&vals('colunas').length)c.push(`O relatório exibe as colunas: ${vals('colunas').join(', ')}.`);
  if(d.quero)c.push(`O usuário consegue ${d.quero}.`);
  const atual=d.criterios.split('\n').map(s=>s.trim()).filter(Boolean),novos=c.filter(x=>!atual.includes(x));
- d.criterios=[...atual,...novos].join('\n');$('#f-crit').value=d.criterios;save();
+ d.criterios=[...atual,...novos].join('\n');$('#f-crit').value=d.criterios;grow($('#f-crit'));save();
  toast(novos.length?`${novos.length} critério(s) adicionado(s)`:'Nenhum critério novo');
 }
 function toast(msg,fn){
@@ -527,7 +531,7 @@ Responda somente com um objeto JSON neste formato: ${shape}`;
 }
 document.addEventListener('input',e=>{
  const el=e.target;
- if(el.dataset.f){d[el.dataset.f]=el.value;save()}
+ if(el.dataset.f){d[el.dataset.f]=el.value;grow(el);save()}
  else if(el.dataset.l){const k=el.dataset.l,i=+el.dataset.i;if(k==='params')d.params[i].nome=el.value;else d[k][i]=el.value;save()}
  else if(el.dataset.link!==undefined){d.links[el.dataset.link]=el.value;save();linkUi(el)}
  else if(el.dataset.g!==undefined){d.params[+el.dataset.g].grafico=el.value;save()}
@@ -575,12 +579,13 @@ document.addEventListener('click',async e=>{
  else if(b.id==='importBk'){
   let a;try{a=JSON.parse($('#backup').value)}catch(_){toast('Backup inválido. Cole o texto gerado por esta página.');return}
   a=Array.isArray(a)?a:a&&a.cards;if(!Array.isArray(a)){toast('Backup inválido. Cole o texto gerado por esta página.');return}
-  let n=0;for(const c of a){if(!c||!c.id)continue;const id=String(c.id).replace(/[^\w-]/g,'');if(!id||cards.some(x=>x.id===id))continue;try{await persist(norm(c,id));n++}catch(_){break}}
-  toast(`${n} card(s) importado(s)`)}
+  let n=0,u=0;for(const c of a){if(!c||!c.id)continue;const id=String(c.id).replace(/[^\w-]/g,'');if(!id)continue;const ex=cards.some(x=>x.id===id);try{await persist(norm(c,id));ex?u++:n++}catch(_){break}}
+  toast(`${n} card(s) novo(s), ${u} atualizado(s)`)}
 });
 fillForm();renderCards();
 initAI();
 if(window.claude&&claude.use){connect()}else if(fbOn()){fbStart()}else useLocal('Firebase ainda não configurado: os cards ficam salvos só neste navegador.');
+window.addEventListener('resize',()=>growAll());
 }
 </script>
 </body></html>
