@@ -13,20 +13,42 @@ service cloud.firestore {
 
     function myUser() { return /databases/$(database)/documents/users/$(request.auth.uid); }
     function approved() { return signedIn() && exists(myUser()) && get(myUser()).data.status == 'aprovado'; }
+    function member() { return isMaster() || approved(); }
 
-    // Cadastro de usuários: cada pessoa cria o próprio pedido como "pendente".
-    // Só o master aprova, bloqueia ou apaga.
+    // Usuários: cada pessoa cria o próprio pedido como "pendente".
+    // Aprovados veem a lista do time (para marcar com @). Só o master aprova, bloqueia ou apaga.
     match /users/{uid} {
-      allow read: if isMaster() || (signedIn() && request.auth.uid == uid);
+      allow read: if member() || (signedIn() && request.auth.uid == uid);
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.email == request.auth.token.email
         && (isMaster() || (request.resource.data.status == 'pendente' && request.resource.data.papel == 'membro'));
       allow update, delete: if isMaster();
+
+      // Notificações de menção: qualquer membro cria para outra pessoa; só o dono lê e marca como lida.
+      match /notificacoes/{nid} {
+        allow create: if member() && request.resource.data.deUid == request.auth.uid;
+        allow read, update, delete: if signedIn() && request.auth.uid == uid;
+      }
     }
 
-    // Cards: só o master e usuários aprovados leem e escrevem.
+    // Cards: master e aprovados leem e escrevem.
     match /cards/{cardId} {
-      allow read, write: if isMaster() || approved();
+      allow read, write: if member();
+
+      // Comentários: membros leem; cada um cria em seu nome; autor ou master excluem.
+      match /comentarios/{cid} {
+        allow read: if member();
+        allow create: if member() && request.resource.data.autorUid == request.auth.uid;
+        allow update, delete: if isMaster() || (member() && resource.data.autorUid == request.auth.uid);
+      }
+
+      // Anexos (imagens e arquivos guardados no próprio banco, até ~1 MB cada).
+      match /anexos/{aid} {
+        allow read: if member();
+        allow create: if member() && request.resource.data.autorUid == request.auth.uid
+          && request.resource.data.dataUrl is string && request.resource.data.dataUrl.size() < 1000000;
+        allow delete: if isMaster() || (member() && resource.data.autorUid == request.auth.uid);
+      }
     }
   }
 }
