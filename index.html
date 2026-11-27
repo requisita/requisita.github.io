@@ -122,19 +122,37 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
 .nav .who-me{color:#9a9ca0;font-size:13px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #btnOut,#btnUsers{background:transparent;color:#fff;border:1px solid #555}
 #btnOut:hover,#btnUsers:hover{background:#222}
-.gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
+.gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);overflow:auto}
 .gate[hidden],.modal[hidden]{display:none}
-.gbox{width:min(400px,100%);border:1px solid var(--line);border-top:3px solid #000;border-radius:3px;padding:24px}
-.gtop{display:flex;gap:12px;align-items:center;margin-bottom:20px}
-.gtop h1{font-size:20px;font-weight:600}.gtop p{margin:0;color:var(--mut)}
-.gbox label{display:block;font-weight:500;margin:10px 0 4px}.gbox label small{color:var(--mut);font-weight:400}
-.gbox input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:3px;padding:6px 8px;height:38px}
-.gbox input:focus{outline:0;border-color:var(--solid)}
-.btn.wide{width:100%;height:40px}
-.gor{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:13px;margin:16px 0 4px}.gor::before,.gor::after{content:"";flex:1;border-top:1px solid var(--line)}
-.gbtns{display:flex;gap:8px;margin:14px 0 6px}.gbtns .btn{flex:1;height:38px}
-.gmsg{color:var(--mut);font-size:13px;margin:10px 0 0;min-height:1em}
-#gWaitMsg{margin:0 0 6px}
+.gbrand{background:#000;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:40px clamp(24px,4vw,56px);border-right:2px solid var(--silver);min-height:100vh}
+.gb-top{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600}
+.gb-mid h1{font-size:clamp(26px,3vw,36px);font-weight:600;line-height:1.15;max-width:16ch;margin:0 0 14px}
+.gb-mid p{color:#a7a9ac;max-width:40ch;margin:0;font-size:15px}
+.gb-foot{color:#6b6d70;font-size:13px;margin:0}
+.gpane{display:grid;place-items:center;padding:32px 20px}
+.gbox{width:min(380px,100%)}
+.gbox h2{font-size:24px;font-weight:600;margin:0 0 4px}
+.gsub{color:var(--mut);margin:0 0 20px}
+.gtabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:4px;padding:3px;margin-bottom:18px;background:var(--sub)}
+.gtabs button{border:0;background:none;color:var(--mut);font:500 14px inherit;font-family:inherit;height:32px;border-radius:3px;cursor:pointer}
+.gtabs button.on{background:var(--bg);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.gbtn{width:100%;height:40px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;font:500 14px inherit;font-family:inherit;cursor:pointer}
+.gbtn:hover{background:var(--hov)}
+.gbtn.pri{background:var(--solid);color:var(--onsolid);border-color:var(--solid);margin-top:6px}
+.gbtn.pri:hover{opacity:.88;background:var(--solid)}
+.gbtn svg{width:18px;height:18px}
+.gbtn:focus-visible,.gtabs button:focus-visible,.glink:focus-visible{outline:2px solid var(--silver);outline-offset:2px}
+.gor{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:12px;margin:18px 0 14px}.gor::before,.gor::after{content:"";flex:1;border-top:1px solid var(--line)}
+.gfield{margin-bottom:12px}.gfield[hidden]{display:none}
+.gfield label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.glabel{display:flex;justify-content:space-between;align-items:baseline}
+.glink{border:0;background:none;color:var(--mut);font:400 13px inherit;font-family:inherit;cursor:pointer;padding:0}
+.glink:hover{color:var(--ink);text-decoration:underline}
+.gfield input{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 10px;height:40px}
+.gfield input:focus{outline:0;border-color:var(--solid);box-shadow:0 0 0 1px var(--solid)}
+.gbtns{display:flex;gap:8px}.gbtns .gbtn{flex:1}
+.gmsg{color:var(--mut);font-size:13px;margin:14px 0 0;min-height:1em}
+@media(max-width:760px){.gate{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;align-content:start}.gpane{place-items:start center}.gbrand{min-height:0;padding:20px;border-right:0;border-bottom:2px solid var(--silver)}.gb-mid,.gb-foot{display:none}}
 .modal{position:fixed;inset:0;z-index:15;background:rgba(0,0,0,.45);display:grid;place-items:start center;padding:60px 16px;overflow:auto}
 .mbox{width:min(720px,100%);background:var(--bg);border-radius:3px;padding:16px 18px;box-shadow:0 12px 32px rgba(0,0,0,.35)}
 .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.mh h2{font-size:18px;font-weight:600}
@@ -156,23 +174,38 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
   <button type="button" id="btnOut" hidden>Sair</button>
 </header>
 <div class="gate" id="gate" hidden>
-  <div class="gbox">
-    <div class="gtop"><div class="logo" aria-hidden="true">R</div><div><h1>Requisita.ai</h1><p>Eco-Maida · acesso do time</p></div></div>
-    <div id="gLogin">
-      <button type="button" class="btn pri wide" id="gGoogle">Entrar com Google</button>
-      <div class="gor"><span>ou com e-mail e senha</span></div>
-      <label for="gNome">Nome <small>só para criar conta</small></label><input id="gNome" autocomplete="name">
-      <label for="gEmail">E-mail</label><input id="gEmail" type="email" autocomplete="username">
-      <label for="gPass">Senha</label><input id="gPass" type="password" autocomplete="current-password">
-      <div class="gbtns"><button type="button" class="btn pri" id="gEnter">Entrar</button><button type="button" class="btn" id="gSignup">Criar conta</button></div>
-      <button type="button" class="lnk" id="gReset">Esqueci a senha</button>
+  <aside class="gbrand">
+    <div class="gb-top"><div class="logo" aria-hidden="true">R</div><span>Requisita.ai</span></div>
+    <div class="gb-mid">
+      <h1>Levantamento de requisitos do Eco-Maida, em um só lugar.</h1>
+      <p>Cards de BI e relatórios com história, filtros, colunas e critérios de aceite, prontos para o Jira.</p>
     </div>
-    <div id="gWait" hidden>
-      <p id="gWaitMsg"></p>
-      <div class="gbtns"><button type="button" class="btn pri" id="gRecheck">Verificar de novo</button><button type="button" class="btn" id="gOut">Sair</button></div>
+    <p class="gb-foot">Acesso restrito ao time. Novos cadastros passam pela aprovação do master.</p>
+  </aside>
+  <main class="gpane">
+    <div class="gbox">
+      <div id="gLogin">
+        <h2 id="gTitle">Entrar</h2>
+        <p class="gsub" id="gSubTxt">Use sua conta do time para acessar o backlog.</p>
+        <div class="gtabs" role="tablist" aria-label="Acesso">
+          <button type="button" role="tab" data-gmode="entrar" class="on" aria-selected="true">Entrar</button>
+          <button type="button" role="tab" data-gmode="criar" aria-selected="false">Criar conta</button>
+        </div>
+        <button type="button" class="gbtn google" id="gGoogle"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg><span id="gGoogleTxt">Continuar com Google</span></button>
+        <div class="gor"><span>ou com e-mail</span></div>
+        <div class="gfield" id="gNomeWrap" hidden><label for="gNome">Nome</label><input id="gNome" autocomplete="name"></div>
+        <div class="gfield"><label for="gEmail">E-mail</label><input id="gEmail" type="email" autocomplete="username" placeholder="nome@maida.health"></div>
+        <div class="gfield"><div class="glabel"><label for="gPass">Senha</label><button type="button" class="glink" id="gReset">Esqueci a senha</button></div><input id="gPass" type="password" autocomplete="current-password"></div>
+        <button type="button" class="gbtn pri" id="gSubmit">Entrar</button>
+      </div>
+      <div id="gWait" hidden>
+        <h2>Quase lá</h2>
+        <p id="gWaitMsg" class="gsub"></p>
+        <div class="gbtns"><button type="button" class="gbtn pri" id="gRecheck">Verificar de novo</button><button type="button" class="gbtn" id="gOut">Sair</button></div>
+      </div>
+      <p class="gmsg" id="gMsg" role="status"></p>
     </div>
-    <p class="gmsg" id="gMsg" role="status"></p>
-  </div>
+  </main>
 </div>
 <div class="modal" id="umodal" hidden>
   <div class="mbox" role="dialog" aria-label="Usuários">
@@ -282,6 +315,11 @@ const body=c=>{const o={};FIELDS.forEach(k=>{if(c[k]!==undefined)o[k]=c[k]});ret
    Esses dados não são senha: podem ficar no repositório público. A segurança vem das regras do Firestore. */
 const FIREBASE_CONFIG={apiKey:"AIzaSyBjISGIXktzMFy3t_hinDF8iFZD8bGOxaY",authDomain:"requisita.firebaseapp.com",projectId:"requisita",storageBucket:"requisita.firebasestorage.app",messagingSenderId:"696965923031",appId:"1:696965923031:web:d1f0da3979e237e66bb092"};
 const MASTER='cicero.silva@maida.health';
+let gMode='entrar';
+function setGMode(){const c=gMode==='criar';document.querySelectorAll('[data-gmode]').forEach(x=>{const on=x.dataset.gmode===gMode;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)});$('#gNomeWrap').hidden=!c;$('#gReset').hidden=c;$('#gTitle').textContent=c?'Criar conta':'Entrar';$('#gSubTxt').textContent=c?'Depois do cadastro, o master precisa aprovar seu acesso.':'Use sua conta do time para acessar o backlog.';$('#gSubmit').textContent=c?'Criar conta':'Entrar';$('#gGoogleTxt').textContent=c?'Cadastrar com Google':'Continuar com Google';$('#gPass').autocomplete=c?'new-password':'current-password';gmsg('')}
+async function gmode_submit(){const em=$('#gEmail').value.trim(),pw=$('#gPass').value;if(!em||!pw){gmsg('Preencha e-mail e senha.');return}
+ if(gMode==='entrar'){gmsg('Entrando…');try{await fb.AU.signInWithEmailAndPassword(fb.auth,em,pw);gmsg('')}catch(err){gmsg(aerr(err))}return}
+ pendingName=$('#gNome').value.trim();gmsg('Criando conta…');try{const cr=await fb.AU.createUserWithEmailAndPassword(fb.auth,em,pw);if(pendingName)await fb.AU.updateProfile(cr.user,{displayName:pendingName});await fb.AU.sendEmailVerification(cr.user);gmsg('')}catch(err){gmsg(aerr(err))}}
 let fb=null,unsubCards=null,unsubMe=null,unsubUsers=null,users=[],uft='pendente',myName='',pendingName='';
 const fbOn=()=>!!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId);
 const AUTHERR={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail inválido.','auth/email-already-in-use':'Já existe conta com esse e-mail. Use Entrar.','auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.','auth/popup-closed-by-user':'Login com Google cancelado.','auth/popup-blocked':'O navegador bloqueou a janela do Google. Libere pop-ups para este site.','auth/unauthorized-domain':'Este site não está autorizado no Firebase. Adicione o domínio em Authentication > Configurações > Domínios autorizados.','auth/operation-not-allowed':'Este tipo de login não está ativado no Firebase.','auth/too-many-requests':'Muitas tentativas. Espere alguns minutos.','auth/network-request-failed':'Sem conexão com a internet.'};
@@ -542,6 +580,7 @@ document.addEventListener('keydown',e=>{
  const el=e.target;
  if(e.key==='Enter'&&el.dataset.l){e.preventDefault();addItem(el.dataset.l)}
  else if(e.key==='Enter'&&el.dataset.edit)edit(el.dataset.edit);
+ else if(e.key==='Enter'&&['gEmail','gPass','gNome'].includes(el.id)){e.preventDefault();gmode_submit()}
 });
 function addItem(k){d[k].push(k==='params'?{nome:'',grafico:''}:'');renderExtra();save();const a=document.querySelectorAll(`[data-l="${k}"]`);a[a.length-1]?.focus()}
 document.addEventListener('click',async e=>{
@@ -565,8 +604,8 @@ document.addEventListener('click',async e=>{
  else if(b.dataset.copy)copy(md(cards.find(c=>c.id==b.dataset.copy)));
  else if(b.dataset.rm){const old=clone(cards.find(c=>c.id==b.dataset.rm));try{await remove(old.id);toast(`${old.key} excluído`,()=>persist(old).catch(()=>toast('Não foi possível desfazer')))}catch(err){toast('Não foi possível excluir. Você pode estar só com acesso de leitura.')}}
  else if(b.id==='gGoogle'){gmsg('Abrindo o Google…');try{await fb.AU.signInWithPopup(fb.auth,new fb.AU.GoogleAuthProvider());gmsg('')}catch(err){gmsg(aerr(err))}}
- else if(b.id==='gEnter'){const em=$('#gEmail').value.trim(),pw=$('#gPass').value;if(!em||!pw){gmsg('Preencha e-mail e senha.');return}gmsg('Entrando…');try{await fb.AU.signInWithEmailAndPassword(fb.auth,em,pw);gmsg('')}catch(err){gmsg(aerr(err))}}
- else if(b.id==='gSignup'){const em=$('#gEmail').value.trim(),pw=$('#gPass').value;pendingName=$('#gNome').value.trim();if(!em||!pw){gmsg('Preencha e-mail e senha para criar a conta.');return}gmsg('Criando conta…');try{const cr=await fb.AU.createUserWithEmailAndPassword(fb.auth,em,pw);if(pendingName)await fb.AU.updateProfile(cr.user,{displayName:pendingName});await fb.AU.sendEmailVerification(cr.user);gmsg('')}catch(err){gmsg(aerr(err))}}
+ else if(b.dataset.gmode){gMode=b.dataset.gmode;setGMode()}
+ else if(b.id==='gSubmit'){gmode_submit()}
  else if(b.id==='gReset'){const em=$('#gEmail').value.trim();if(!em){gmsg('Escreva seu e-mail e clique de novo em Esqueci a senha.');return}try{await fb.AU.sendPasswordResetEmail(fb.auth,em);gmsg('Enviamos um link para criar uma nova senha.')}catch(err){gmsg(aerr(err))}}
  else if(b.id==='gRecheck'){const u=fb.auth.currentUser;if(u){await u.reload().catch(()=>{});onUser(fb.auth.currentUser)}}
  else if(b.id==='gOut'||b.id==='btnOut'){await fb.AU.signOut(fb.auth)}
