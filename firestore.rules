@@ -1,54 +1,185 @@
 rules_version = '2';
+// Regras do Requisita.ai. Tudo que não está liberado aqui é bloqueado.
+// Cada escrita é conferida: quem escreve, quais campos, tipos e tamanhos.
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------- quem é quem ----------
     function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
 
     // Master: só a conta cicero.silva@maida.health com e-mail confirmado.
     function isMaster() {
-      return signedIn()
-        && request.auth.token.email == 'cicero.silva@maida.health'
-        && request.auth.token.email_verified == true;
+      return verified() && request.auth.token.email == 'cicero.silva@maida.health';
     }
 
-    function myUser() { return /databases/$(database)/documents/users/$(request.auth.uid); }
-    function approved() { return signedIn() && exists(myUser()) && get(myUser()).data.status == 'aprovado'; }
-    function member() { return isMaster() || approved(); }
+    function userPath(u) { return /databases/$(database)/documents/users/$(u); }
+    function isApproved(u) { return exists(userPath(u)) && get(userPath(u)).data.status == 'aprovado'; }
+    // Membro: master, ou alguém com e-mail confirmado e aprovado pelo master. Bloqueado ou pendente não entra.
+    function member() { return isMaster() || (verified() && isApproved(uid())); }
 
-    // Usuários: cada pessoa cria o próprio pedido como "pendente".
-    // Aprovados veem a lista do time (para marcar com @). Só o master aprova, bloqueia ou apaga.
-    match /users/{uid} {
-      allow read: if member() || (signedIn() && request.auth.uid == uid);
-      allow create: if signedIn() && request.auth.uid == uid
+    // ---------- ajudantes de validação ----------
+    function str(v, max) { return v is string && v.size() <= max; }
+    function strList(v, maxItems) { return v is list && v.size() <= maxItems; }
+    function isoDate(v) { return v is string && v.size() <= 40; }
+    // Campo opcional: se foi enviado (está em keys), precisa ser válido.
+    function opt(keys, k, ok) { return !(k in keys) || ok; }
+
+    // ---------- usuários ----------
+    match /users/{userId} {
+      allow read: if member() || (signedIn() && uid() == userId);
+
+      // Cada pessoa cria o próprio pedido de acesso, sempre como "pendente" e com e-mail confirmado.
+      allow create: if verified() && uid() == userId
+        && request.resource.data.keys().hasOnly(['email', 'nome', 'status', 'papel', 'criadoEm'])
         && request.resource.data.email == request.auth.token.email
-        && (isMaster() || (request.resource.data.status == 'pendente' && request.resource.data.papel == 'membro'));
-      allow update, delete: if isMaster();
+        && str(request.resource.data.nome, 120)
+        && isoDate(request.resource.data.criadoEm)
+        && (
+          (isMaster() && request.resource.data.status == 'aprovado' && request.resource.data.papel == 'master')
+          || (request.resource.data.status == 'pendente' && request.resource.data.papel == 'membro')
+        );
 
-      // Notificações de menção: qualquer membro cria para outra pessoa; só o dono lê e marca como lida.
+      // Só o master aprova, bloqueia ou apaga. Ele não pode mexer no próprio cadastro por aqui (evita se trancar fora).
+      allow update: if isMaster() && userId != uid()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decididoEm'])
+        && request.resource.data.status in ['pendente', 'aprovado', 'bloqueado']
+        && isoDate(request.resource.data.decididoEm);
+      allow delete: if isMaster() && userId != uid();
+
+      // Notificações de menção: um membro cria para outro membro aprovado; só o dono lê, marca como lida ou apaga.
       match /notificacoes/{nid} {
-        allow create: if member() && request.resource.data.deUid == request.auth.uid;
-        allow read, update, delete: if signedIn() && request.auth.uid == uid;
+        allow create: if member() && userId != uid()
+          && (isApproved(userId))
+          && request.resource.data.keys().hasOnly(['tipo', 'deUid', 'deNome', 'cardId', 'cardKey', 'cardTitulo', 'trecho', 'criadoEm', 'lida'])
+          && request.resource.data.tipo == 'mencao'
+          && request.resource.data.deUid == uid()
+          && request.resource.data.lida == false
+          && str(request.resource.data.deNome, 120)
+          && str(request.resource.data.cardId, 64)
+          && exists(/databases/$(database)/documents/cards/$(request.resource.data.cardId))
+          && str(request.resource.data.cardKey, 32)
+          && str(request.resource.data.cardTitulo, 500)
+          && str(request.resource.data.trecho, 300)
+          && isoDate(request.resource.data.criadoEm);
+        allow read, delete: if signedIn() && uid() == userId;
+        allow update: if signedIn() && uid() == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lida'])
+          && request.resource.data.lida is bool;
       }
     }
 
-    // Cards: master e aprovados leem e escrevem.
-    match /cards/{cardId} {
-      allow read, write: if member();
+    // ---------- cards ----------
+    function cardKeys() {
+      return ['status', 'historico', 'key', 'tipo', 'titulo', 'prioridade', 'como', 'quero', 'para',
+              'descricao', 'criterios', 'filtros', 'params', 'comps', 'colunas', 'integracoes', 'links',
+              'integDetalhe', 'autor', 'autorNome', 'criadoEm', 'editadoPor', 'editadoNome', 'editadoEm',
+              'ultimaAtividade', 'nComentarios', 'nAnexos'];
+    }
+    // Confere só os campos em "keys": no create, todos; no update, só os que mudaram.
+    function cardFieldsOk(d, keys) {
+      return opt(keys, 'status', d.get('status', null) in ['Em levantamento de requisitos', 'Escrevendo', 'Pronto para desenvolvimento', 'Pronto para validação', 'Concluído'])
+        && opt(keys, 'historico', strList(d.get('historico', null), 500))
+        && opt(keys, 'key', d.get('key', null) is string && d.get('key', null).matches('^ECO-[0-9]{1,7}$'))
+        && opt(keys, 'tipo', d.get('tipo', null) in ['bi', 'rel'])
+        && opt(keys, 'titulo', str(d.get('titulo', null), 500))
+        && opt(keys, 'prioridade', d.get('prioridade', null) in ['Baixa', 'Média', 'Alta'])
+        && opt(keys, 'como', str(d.get('como', null), 2000))
+        && opt(keys, 'quero', str(d.get('quero', null), 2000))
+        && opt(keys, 'para', str(d.get('para', null), 2000))
+        && opt(keys, 'descricao', str(d.get('descricao', null), 50000))
+        && opt(keys, 'criterios', str(d.get('criterios', null), 50000))
+        && opt(keys, 'filtros', strList(d.get('filtros', null), 200))
+        && opt(keys, 'params', strList(d.get('params', null), 200))
+        && opt(keys, 'comps', strList(d.get('comps', null), 200))
+        && opt(keys, 'colunas', strList(d.get('colunas', null), 200))
+        && opt(keys, 'integracoes', strList(d.get('integracoes', null), 20))
+        && opt(keys, 'links', d.get('links', null) is map && d.get('links', null).size() <= 10)
+        && opt(keys, 'integDetalhe', str(d.get('integDetalhe', null), 5000))
+        && opt(keys, 'autorNome', str(d.get('autorNome', null), 120))
+        && opt(keys, 'criadoEm', isoDate(d.get('criadoEm', null)))
+        && opt(keys, 'editadoPor', str(d.get('editadoPor', null), 128))
+        && opt(keys, 'editadoNome', str(d.get('editadoNome', null), 120))
+        && opt(keys, 'editadoEm', isoDate(d.get('editadoEm', null)))
+        && opt(keys, 'ultimaAtividade', isoDate(d.get('ultimaAtividade', null)))
+        && opt(keys, 'nComentarios', d.get('nComentarios', null) is int)
+        && opt(keys, 'nAnexos', d.get('nAnexos', null) is int);
+    }
+    // Campos que não mudam depois de criados (só podem ser preenchidos se o card antigo não tinha).
+    function keepsOrFills(k) {
+      return !(k in request.resource.data.diff(resource.data).affectedKeys())
+        || !(k in resource.data)
+        || (k == 'tipo' && !(resource.data.tipo in ['bi', 'rel']));
+    }
 
-      // Comentários: membros leem; cada um cria em seu nome; autor ou master excluem.
+    match /cards/{cardId} {
+      allow read: if member();
+
+      // Criar: id no formato do app, autor é quem cria (o master pode restaurar backup de outros autores).
+      allow create: if member()
+        && cardId.matches('^[A-Za-z0-9_-]{1,64}$')
+        && request.resource.data.keys().hasOnly(cardKeys())
+        && request.resource.data.keys().hasAll(['key', 'tipo', 'titulo', 'status'])
+        && cardFieldsOk(request.resource.data, request.resource.data.keys())
+        && (request.resource.data.get('autor', '') == uid() || isMaster());
+
+      // Editar: qualquer membro edita o conteúdo, mas autor, data de criação, código e tipo ficam travados.
+      allow update: if member()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(cardKeys())
+        && cardFieldsOk(request.resource.data, request.resource.data.diff(resource.data).affectedKeys())
+        && keepsOrFills('autor') && keepsOrFills('autorNome') && keepsOrFills('criadoEm')
+        && keepsOrFills('key') && keepsOrFills('tipo')
+        && (!('autor' in request.resource.data.diff(resource.data).affectedKeys()) || request.resource.data.autor == uid())
+        && (!('editadoPor' in request.resource.data.diff(resource.data).affectedKeys()) || request.resource.data.editadoPor == uid());
+
+      // Excluir: só quem criou o card ou o master.
+      allow delete: if isMaster() || (member() && resource.data.get('autor', '') == uid());
+
+      // Comentários: membros leem; cada um cria em seu próprio nome; ninguém edita; autor ou master excluem.
       match /comentarios/{cid} {
         allow read: if member();
-        allow create: if member() && request.resource.data.autorUid == request.auth.uid;
-        allow update, delete: if isMaster() || (member() && resource.data.autorUid == request.auth.uid);
+        allow create: if member()
+          && request.resource.data.keys().hasOnly(['tipo', 'de', 'para', 'motivo', 'texto', 'autorUid', 'autorNome', 'criadoEm', 'mencoes', 'mencoesNomes', 'anexos'])
+          && request.resource.data.autorUid == uid()
+          && str(request.resource.data.autorNome, 120)
+          && str(request.resource.data.texto, 10000)
+          && isoDate(request.resource.data.criadoEm)
+          && strList(request.resource.data.mencoes, 50)
+          && strList(request.resource.data.anexos, 20)
+          && opt(request.resource.data.keys(), 'mencoesNomes', request.resource.data.get('mencoesNomes', null) is map && request.resource.data.get('mencoesNomes', {}).size() <= 50)
+          && opt(request.resource.data.keys(), 'tipo', request.resource.data.get('tipo', null) == 'status')
+          && opt(request.resource.data.keys(), 'de', str(request.resource.data.get('de', null), 60))
+          && opt(request.resource.data.keys(), 'para', str(request.resource.data.get('para', null), 60))
+          && opt(request.resource.data.keys(), 'motivo', str(request.resource.data.get('motivo', null), 2000));
+        allow update: if false;
+        allow delete: if isMaster() || (member() && resource.data.autorUid == uid());
       }
 
-      // Anexos (imagens e arquivos guardados no próprio banco, até ~1 MB cada).
+      // Anexos guardados no próprio banco (até ~1 MB). Arquivos executáveis ou páginas web são recusados.
       match /anexos/{aid} {
         allow read: if member();
-        allow create: if member() && request.resource.data.autorUid == request.auth.uid
-          && request.resource.data.dataUrl is string && request.resource.data.dataUrl.size() < 1000000;
-        allow delete: if isMaster() || (member() && resource.data.autorUid == request.auth.uid);
+        allow create: if member()
+          && request.resource.data.keys().hasOnly(['nome', 'tipo', 'tamanho', 'dataUrl', 'autorUid', 'autorNome', 'criadoEm'])
+          && request.resource.data.autorUid == uid()
+          && str(request.resource.data.autorNome, 120)
+          && str(request.resource.data.nome, 200)
+          && !request.resource.data.nome.lower().matches('.*[.](html?|xhtml|svg|js|mjs|exe|msi|bat|cmd|com|scr|ps1|vbs|vbe|jar|sh|hta|lnk|dll|reg|apk|app|dmg|iso)$')
+          && str(request.resource.data.tipo, 100)
+          && !request.resource.data.tipo.lower().matches('.*(html|svg|javascript|ecmascript|x-msdownload|x-sh).*')
+          && request.resource.data.tamanho is number && request.resource.data.tamanho >= 0
+          && isoDate(request.resource.data.criadoEm)
+          && request.resource.data.dataUrl is string
+          && request.resource.data.dataUrl.size() < 1000000
+          && request.resource.data.dataUrl.matches('^data:[A-Za-z0-9.+-]+/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+/=]+$');
+        allow update: if false;
+        allow delete: if isMaster() || (member() && resource.data.autorUid == uid());
       }
+    }
+
+    // Qualquer outro caminho: bloqueado.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
