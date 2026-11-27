@@ -241,8 +241,8 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
 .nit time{color:var(--mut);font-size:12px}
 
 .stbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--sub)}
-.stw{position:relative}
-.loz{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 10px 0 12px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 13px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.02em;cursor:pointer}
+.stw{position:relative;flex:none;max-width:100%}
+.loz{display:inline-flex;align-items:center;gap:8px;height:34px;white-space:nowrap;max-width:100%;padding:0 10px 0 12px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 13px inherit;font-family:inherit;text-transform:uppercase;letter-spacing:.02em;cursor:pointer}
 .loz:hover{border-color:var(--ink)}
 .loz:focus-visible{outline:2px solid var(--silver);outline-offset:2px}
 .loz svg{width:16px;height:16px}
@@ -279,6 +279,17 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
 .rbtns{display:flex;justify-content:flex-end;gap:8px}
 #fStatus{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:3px;height:34px;padding:0 6px}
 .li .st{min-width:0}
+.ctop{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:18px 0 6px}
+.ctop .crumb{padding:0}
+.backbtn{display:inline-flex;align-items:center;gap:4px;padding:0 12px 0 8px}
+.backbtn svg{width:18px;height:18px}
+.tipow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}
+.tipow[hidden]{display:none}
+.tipow .tipos{margin-bottom:0}
+.tlabel{font-weight:600;font-size:13px}
+.tnote{color:var(--mut);font-size:12px}
+.tbadge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:3px;padding:3px 10px;font-weight:600;font-size:13px;margin-bottom:10px}
+.tbadge[hidden]{display:none}
 @media(max-width:900px){.issue{grid-template-columns:minmax(0,1fr)}.side{position:static}}
 @media(max-width:600px){.nav .maida,.nav .vsep{display:none}.li{grid-template-columns:16px minmax(0,1fr) auto;row-gap:2px}.li .k{grid-column:2}.li .t{grid-column:1/-1;white-space:normal}.li .tg,.li .p,.li .who,.li .cc{display:none}.li .st{grid-column:2/-1}.li .a{grid-column:3;grid-row:1}.bh input{width:100%}}
 </style></head><body>
@@ -354,17 +365,14 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
   </section>
 
   <section class="view" id="vCard" hidden>
-    <div class="crumb"><a href="#" class="back" id="toBacklog">Backlog</a> / Eco-Maida / <strong id="crumbKey">Novo card</strong></div>
+    <div class="ctop"><button type="button" class="btn backbtn" id="toBacklog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Voltar para o backlog</button><div class="crumb">Backlog / Eco-Maida / <strong id="crumbKey">Novo card</strong></div></div>
     <div class="issue">
       <div class="leftcol">
     <form id="form" autocomplete="off" onsubmit="return false">
-      <div class="tipos" role="tablist" aria-label="Tipo do card"><button type="button" data-type="bi"></button><button type="button" data-type="rel"></button></div>
+      <div class="tipow" id="tipoNovo"><span class="tlabel">Tipo do card</span><div class="tipos" role="tablist" aria-label="Tipo do card"><button type="button" data-type="bi"></button><button type="button" data-type="rel"></button></div><span class="tnote">Depois de salvo, o tipo não muda.</span></div><div class="tbadge" id="tipoBadge" hidden></div>
       <input id="f-titulo" class="inl" data-f="titulo" placeholder="Resumo do card" aria-label="Resumo">
       <div class="bar">
         <button type="button" class="btn pri" id="salvar">Salvar</button>
-        <button type="button" class="btn" id="copiarMd">Copiar para o Jira</button>
-        <button type="button" class="btn" id="copiarTxt">Copiar texto simples</button>
-        <button type="button" class="btn" id="sugerir">Sugerir critérios</button>
       </div>
       <div class="sec">
         <h3>História</h3>
@@ -746,6 +754,7 @@ const who=(id,nm)=>id?(id===me?'você':(names[id]||nm||'Alguém do time')):'';
 
 /* ---------- interface ---------- */
 function renderTipos(){
+ const saved=!!(d.id&&cards.some(c=>c.id===d.id));$('#tipoNovo').hidden=saved;$('#tipoBadge').hidden=!saved;$('#tipoBadge').innerHTML=ico(d.tipo)+(d.tipo==='bi'?'BI':'Relatório');
  document.querySelectorAll('.tipos button').forEach(b=>{b.innerHTML=ico(b.dataset.type)+TYPES[b.dataset.type];b.classList.toggle('on',b.dataset.type===d.tipo);b.setAttribute('aria-selected',b.dataset.type===d.tipo)});
  $('#tipoFix').innerHTML=ico(d.tipo)+TYPES[d.tipo];
 }
@@ -816,7 +825,7 @@ async function salvar(){
  saving=true;const now=new Date().toISOString();
  if(!d.id){d.id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);d.key='ECO-'+(Math.max(0,...cards.map(c=>num(c.key)))+1);d.autor=me||'';d.autorNome=myName||'';d.criadoEm=now}
  else{d.editadoPor=me||'';d.editadoNome=myName||'';d.editadoEm=now}
- const wasNew=!cards.some(c=>c.id===d.id);if(wasNew)history.replaceState(null,'','#'+d.key);try{await persist(d);dirty=false;save();meta();renderCards();toast(`${d.key} salvo`);if(wasNew){openActivity(d);$('#crumbKey').textContent=d.key;document.title=d.key+' · Requisita.ai'}}
+ const wasNew=!cards.some(c=>c.id===d.id);if(wasNew)history.replaceState(null,'','#'+d.key);try{await persist(d);dirty=false;save();meta();renderCards();toast(`${d.key} salvo`);if(wasNew){renderTipos();openActivity(d);$('#crumbKey').textContent=d.key;document.title=d.key+' · Requisita.ai'}}
  catch(e){toast(e&&e.code==='quota_exceeded'?'O backlog atingiu o limite de cards. Exclua cards antigos e salve de novo.':e&&e.code==='invalid_argument'?'Você só tem acesso de leitura a este backlog. Peça acesso de Contribuidor ao dono.':'Não foi possível salvar agora. Tente de novo.')}
  saving=false;
 }
@@ -928,7 +937,7 @@ document.addEventListener('click',async e=>{
  if(e.target.id==='lb'){$('#lb').hidden=true;return}
  const bk=e.target.closest('#toBacklog');if(bk){e.preventDefault();history.pushState(null,'',location.pathname);route();return}
  const b=e.target.closest('button');if(!b)return;
- if(b.dataset.type){d.tipo=b.dataset.type;renderTipos();renderExtra();save()}
+ if(b.dataset.type){if(d.id&&cards.some(c=>c.id===d.id))return;d.tipo=b.dataset.type;renderTipos();renderExtra();save()}
  else if(b.dataset.ft!==undefined){ft=b.dataset.ft;renderCards()}
  else if(b.dataset.add)addItem(b.dataset.add);
  else if(b.dataset.del){d[b.dataset.del].splice(+b.dataset.i,1);renderExtra();save()}
