@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 236 48" role="img" aria-label="Requisita.ai">
+
+  <defs>
+    <linearGradient id="rq-s" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4f5f6"/><stop offset=".5" stop-color="#a7a9ac"/><stop offset="1" stop-color="#e6e7e8"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="46" height="46" rx="12" fill="#000" stroke="url(#rq-s)" stroke-width="2"/>
+  <path d="M14 36V11h9.5a7.25 7.25 0 0 1 0 14.5H14M21.5 25.5L28 34" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="34" cy="33" r="8.6" fill="url(#rq-s)" stroke="#000" stroke-width="2.6"/>
+  <path d="M30.2 33.2l2.6 2.6 5-5.4" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="60" y="33" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif" font-size="25" font-weight="600" letter-spacing="-0.3" fill="#ffffff">Requisita<tspan fill="#a7a9ac">.ai</tspan></text>
+</svg>
