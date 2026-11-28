@@ -124,11 +124,37 @@ details textarea{width:100%;font:13px ui-monospace,monospace;color:var(--ink);ba
 .tipos button:hover{background:var(--hov)}
 .tipos button.on{background:var(--solid);color:var(--onsolid)}
 .tipos button.on .ico.rel{border-color:var(--onsolid)}.tipos button.on .ico.rel path{stroke:var(--onsolid)}.tipos button.on .ico.hist{background:var(--onsolid)}.tipos button.on .ico.hist path{fill:var(--solid)}
-.ftabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.ftrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.ftabs{display:flex;flex-wrap:wrap;gap:4px}
 .ftabs button{border:0;background:none;color:var(--mut);font:500 14px inherit;font-family:inherit;height:32px;padding:0 10px;border-radius:3px;cursor:pointer}
 .ftabs button:hover{background:var(--hov)}
 .ftabs button.on{background:var(--solid);color:var(--onsolid)}
 .ftabs small{opacity:.7;margin-left:4px}
+.dash{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);gap:12px;margin:0 0 14px}
+.dash[hidden]{display:none}
+.pn{border:1px solid var(--line);border-radius:3px;padding:12px 14px;min-width:0}
+.pn h3{font-size:13px;font-weight:600;margin:0 0 10px;display:flex;justify-content:space-between;gap:8px}
+.pn h3 small{color:var(--mut);font-weight:400}
+.sr{display:grid;grid-template-columns:minmax(0,196px) minmax(0,1fr) 54px;gap:10px;align-items:center;width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:4px 6px;margin:0 -6px;border-radius:3px;cursor:pointer}
+.sr:hover{background:var(--hov)}.sr.on{background:var(--hov);box-shadow:inset 2px 0 0 var(--solid)}
+.sr .n{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr .bar{height:10px;background:var(--sub);border-radius:2px;overflow:hidden;display:flex}
+.sr .bar i{display:block;height:100%}
+.sr .v{font-size:12px;text-align:right;white-space:nowrap}.sr .v small{color:var(--mut)}
+.pn .hint{color:var(--mut);font-size:11px;margin:8px 0 0}
+.donut{display:flex;align-items:center;gap:14px}
+.donut svg{width:96px;height:96px;flex:none}
+.big{font-size:26px;font-weight:600;line-height:1}
+.kv{font-size:12px;color:var(--mut);margin-top:4px}
+.stk{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--sub);margin-top:12px}
+.lg{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:11px;color:var(--mut)}.lg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.mrow{display:grid;grid-template-columns:72px minmax(0,1fr) 28px;gap:8px;align-items:center;font-size:12px;margin:5px 0}
+.mrow .bar{height:8px;background:var(--sub);border-radius:2px;overflow:hidden}.mrow .bar i{display:block;height:100%;background:var(--solid)}
+.mrow .bar i.sv{background:var(--silver)}
+.mrow b{text-align:right;font-weight:500}
+.sep{border-top:1px solid var(--line);margin:10px 0}
+.dtog{display:inline-flex;align-items:center;gap:6px}
+@media (max-width:900px){.dash{grid-template-columns:1fr}}
+.ftrow .ftabs{min-width:0}
 .li .who{color:var(--mut);font-size:12px;white-space:nowrap}
 .nav .who-me{color:#9a9ca0;font-size:13px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #btnOut,#btnUsers{background:transparent;color:#fff;border:1px solid #555}
@@ -388,7 +414,8 @@ input,select,textarea{font-size:16px}
       <div><h1>Backlog do time</h1><p class="bsub" id="bSub">Todos os cards do Eco-Maida. Clique em um card para abrir, comentar e anexar arquivos.</p></div>
       <div class="bact"><select id="fStatus" aria-label="Filtrar por status"><option value="">Todos os status</option></select><input id="busca" type="search" placeholder="Buscar no backlog" aria-label="Buscar no backlog"><button type="button" class="btn pri" id="novo2">Criar card</button></div>
     </div>
-    <div class="ftabs" id="ftabs" role="tablist" aria-label="Filtrar backlog por tipo"></div>
+    <div class="ftrow"><div class="ftabs" id="ftabs" role="tablist" aria-label="Filtrar backlog por tipo"></div><button type="button" class="btn dtog" id="dTog" aria-expanded="true" aria-controls="dash"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Ocultar gráficos</span></button></div>
+    <div class="dash" id="dash" aria-label="Resultados por status"></div>
     <div class="list" id="cards"></div>
     <details>
       <summary>Backup e importação</summary>

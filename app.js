@@ -385,8 +385,32 @@ function renderCards(){
  const fs=$('#fStatus').value;const list=cards.filter(c=>(!ft||c.tipo===ft)&&(!fs||c.status===fs)&&(!q||[c.key,c.titulo,c.quero].join(' ').toLowerCase().includes(q)));
  $('#cards').innerHTML=list.length?list.map(c=>`<div class="li${c.id===d.id?' cur':''}">${ico(c.tipo)}<span class="k">${esc(c.key)}</span><span class="t" data-edit="${esc(c.id)}" tabindex="0" role="button">${esc(c.titulo||'Sem título')}</span><span class="tg tags">${LINKNAMES.filter(t=>okUrl(linkOf(c,t))).map(t=>{const u=linkOf(c,t);return okUrl(u)?`<a class="tag tl" href="${esc(u)}" target="_blank" rel="noopener" title="Abrir ${esc(t)}">${esc(t)} ↗</a>`:`<span class="tag" style="padding-right:6px">${esc(t)}</span>`}).join('')}</span><span class="st"><span class="slz" style="--sc:${STCOR[stIdx(c.status)]}"><i class="dot"></i>${esc(c.status)}</span></span><span class="who">${esc(c.editadoPor?who(c.editadoPor,c.editadoNome):who(c.autor,c.autorNome))}</span><span class="cc" title="${c.nComentarios} comentário(s), ${c.nAnexos} anexo(s)">${c.nComentarios?`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>${c.nComentarios}`:''}</span><span class="p">${esc(c.prioridade)}</span><span class="a"><button type="button" data-copy="${esc(c.id)}">Copiar</button>${canDel(c)?`<button type="button" data-rm="${esc(c.id)}">Excluir</button>`:''}</span></div>`).join('')
   :`<p class="empty">${cards.length?'Nenhum card neste filtro.':'O backlog está vazio. Clique em Criar card para começar.'}</p>`;
+ renderDash();
 }
 const canDel=c=>!fb||amMaster||(!!me&&c.autor===me);
+let dashOn=true;try{dashOn=localStorage.getItem('rq-dash')!=='0'}catch(e){}
+function renderDash(){
+ const el=$('#dash');el.hidden=!dashOn;$('#dTog').setAttribute('aria-expanded',dashOn);$('#dTog span').textContent=dashOn?'Ocultar gráficos':'Mostrar gráficos';if(!dashOn)return;
+ const base=cards.filter(c=>!ft||c.tipo===ft),N=base.length,fs=$('#fStatus').value;
+ const pc=n=>N?Math.round(n*100/N):0,cor=i=>STCOR[i];
+ const by=STATUS.map(s=>base.filter(c=>c.status===s));
+ const mx=Math.max(1,...by.map(a=>a.length));
+ const rows=STATUS.map((s,i)=>{const a=by[i],b=a.filter(c=>c.tipo==='bi').length,r=a.length-b;return `<button type="button" class="sr${fs===s?' on':''}" data-dst="${esc(s)}" title="${esc(s)}: ${a.length} card(s) — BI ${b}, Relatório ${r}. Clique para filtrar."><span class="n">${esc(s)}</span><span class="bar"><i style="width:${a.length*100/mx}%;background:${cor(i)}"></i></span><span class="v">${a.length} <small>${pc(a.length)}%</small></span></button>`}).join('');
+ const done=by[4].length,p=pc(done),R=40,C=2*Math.PI*R;let off=0;
+ const arcs=by.map((a,i)=>{if(!a.length||!N)return'';const L=a.length/N*C,o=`<circle r="${R}" cx="50" cy="50" fill="none" stroke="${cor(i)}" stroke-width="14" stroke-dasharray="${L} ${C-L}" stroke-dashoffset="${-off}" transform="rotate(-90 50 50)"><title>${esc(STATUS[i])}: ${a.length}</title></circle>`;off+=L;return o}).join('');
+ const ready=by[2].length+by[3].length;
+ const pr=['Alta','Média','Baixa'].map(x=>[x,base.filter(c=>c.prioridade===x).length]),pm=Math.max(1,...pr.map(x=>x[1]));
+ const tb=cards.filter(c=>c.tipo==='bi').length,tr=cards.length-tb,tm=Math.max(1,tb,tr);
+ const since=Date.now()-7*864e5;let mv=0,back=0;base.forEach(c=>c.historico.forEach(h=>{if(Date.parse(h.em)>=since){mv++;if(STATUS.indexOf(h.para)<STATUS.indexOf(h.de))back++}}));
+ el.innerHTML=`<section class="pn"><h3>Cards por status <small>${N} card(s)${ft?' · '+esc(PLURAL[ft]):''}</small></h3>${rows}<p class="hint">Clique em um status para filtrar a lista abaixo.${fs?' <a href="#" data-dst="">Limpar filtro</a>':''}</p></section>
+ <section class="pn"><h3>Progresso</h3><div class="donut"><svg viewBox="0 0 100 100" role="img" aria-label="${p}% concluído"><circle r="${R}" cx="50" cy="50" fill="none" stroke="var(--sub)" stroke-width="14"/>${arcs}</svg><div><div class="big">${p}%</div><div class="kv">concluído (${done} de ${N})</div><div class="kv">${ready} prontos para dev/validação</div></div></div>
+ <div class="lg">${STATUS.map((s,i)=>`<span><i style="background:${cor(i)}"></i>${esc(s)}</span>`).join('')}</div></section>
+ <section class="pn"><h3>Prioridade</h3>${pr.map(([x,n])=>`<div class="mrow"><span>${x}</span><span class="bar"><i style="width:${n*100/pm}%"></i></span><b>${n}</b></div>`).join('')}
+ <div class="sep"></div><h3>Tipo</h3><div class="mrow"><span>BI</span><span class="bar"><i style="width:${tb*100/tm}%"></i></span><b>${tb}</b></div><div class="mrow"><span>Relatório</span><span class="bar"><i class="sv" style="width:${tr*100/tm}%"></i></span><b>${tr}</b></div>
+ <div class="sep"></div><div class="kv">Últimos 7 dias: <b style="color:var(--ink)">${mv}</b> mudança(s) de status${back?`, ${back} retorno(s)`:''}</div></section>`;
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-dst]');if(t){e.preventDefault();const v=t.dataset.dst;$('#fStatus').value=$('#fStatus').value===v?'':v;renderCards();return}
+ if(e.target.closest('#dTog')){dashOn=!dashOn;try{localStorage.setItem('rq-dash',dashOn?'1':'0')}catch(_){}renderDash()}});
 function edit(id){const c=cards.find(c=>c.id==id);if(!c)return;if(location.hash==='#'+c.key)route();else location.hash=c.key}
 let saving=false;
 async function salvar(){
